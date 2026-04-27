@@ -1,30 +1,7 @@
-class Pirate {
-  constructor(name, bounty) {
-    this.name = name;
-    this.bounty = bounty;
-  }
-
-  announce() {
-    console.log(`Name of pirate ${this.name} and bounty ${this.bounty}`);
-  }
-}
-
-const luffy = new Pirate("Luffy", 10000000);
-luffy.announce();
-
-class Captain extends Pirate {
-  constructor(Ship, Name, Bounty) {
-    super(Name, Bounty);
-    this.Ship = Ship;
-  }
-
-  announce() {
-    console.log(`Captain ${this.name} is commanding ship ${this.Ship}`);
-  }
-}
-
-const Cap = new Captain("SunnyGO", "Luffy", 10000000);
-Cap.announce();
+// Super runs the constructor of Parent class i.e Error //
+// Error.captureStackTrace(this, this.constructor) here this.constructor
+// captures the line of error and removes unnecessary error line //
+// Using ErrorHandler in next() we transfer message and statusCode of error to global error where they get assigned //
 
 class ErrorHandler extends Error {
   constructor(message, statusCode) {
