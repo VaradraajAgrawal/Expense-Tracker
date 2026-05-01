@@ -2,40 +2,42 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const UserSchema = mongoose.Schema({
-  name: { type: String, required: true },
-  Age: { type: Number, required: true },
-  email: { type: String, unique: true },
-  password: { type: String, select: false },
-  Transaction: {
-    type: mongoose.Schema.Types.ObjectId,
+const UserSchema = mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    Age: { type: Number, required: true },
+    email: { type: String, unique: true, required: true },
+    password: { type: String, select: false },
+    Transaction: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Transaction", // good practice to add ref
+    },
+    getRefreshToken: { type: String, select: false },
   },
-  getRefreshToken: { type: String, select: false },
-});
+  { timestamps: true }, // adds createdAt & updatedAt automatically
+);
 
-// Next is necessary as if not included the request will hit infinite loop & next() transfers it to forward step //
-UserSchema.pre("save", async function (next) {
+// Pre-save hook: only hashes password if it was modified
+UserSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return; // ✅ just return, no next() needed
   }
-  try {
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-  } catch (err) {
-    next(err);
-  }
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
+// Compare plain password with hashed password
 UserSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-UserSchema.methods.refreshToken = function (userId) {
-  return jwt.sign({ id: userId }, process.env.REFRESH, { expiresIn: "7d" });
+// Generate short-lived access token using `this` (no need to pass userId)
+UserSchema.methods.accessToken = function () {
+  return jwt.sign({ id: this._id }, process.env.SECRET, { expiresIn: "15m" });
 };
 
-UserSchema.methods.accessToken = function (userId) {
-  return jwt.sign({ id: userId }, process.env.SECRET, { expiresIn: "15m" });
+// Generate long-lived refresh token using `this`
+UserSchema.methods.refreshToken = function () {
+  return jwt.sign({ id: this._id }, process.env.REFRESH, { expiresIn: "7d" });
 };
 
 const User = mongoose.model("User", UserSchema);

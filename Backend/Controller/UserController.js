@@ -1,57 +1,71 @@
 const middleware = require("../middleware/errorFun");
 const User = require("../models/User");
 const ErrorHandler = require("../utils/prac");
-const jwtVerify = require("../middleware/jwt");
 
-// Helper Function : takes in user data , statuscode as using it for different purpose 1. creating new User, 2. for login purpose , and lastly res for sending data through express //
+// ─── Helper ──────────────────────────────────────────────────────────────────
+// Generates tokens, stores refresh token in DB, sends cookie + JSON response
 const sendToken = async (statusCode, user, res) => {
-  const access = user.accessToken(user._id);
-  const refresh = user.refreshToken(user._id); // Ensure this matches schema method name
+  // No need to pass user._id — instance methods use `this` internally
+  const access = user.accessToken();
+  const refresh = user.refreshToken();
 
-  // This bypasses pre-save hook perfectly
+  // findByIdAndUpdate skips pre("save"), so password won't be re-hashed
   await User.findByIdAndUpdate(user._id, { getRefreshToken: refresh });
 
-  const options = {
-    httpOnly: true,
-    secure: true, // Secure only in production
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  const cookieOptions = {
+    httpOnly: true, // not accessible via JS
+    secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // cross-site in prod
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
   };
 
-  res.status(statusCode).cookie("refreshToken", refresh, options).json({
+  res.status(statusCode).cookie("refreshToken", refresh, cookieOptions).json({
     success: true,
     token: access,
     user,
   });
 };
 
+// ─── Create User ──────────────────────────────────────────────────────────────
 const createUser = middleware(async (req, res, next) => {
-  // Added Transaction here so it's defined
   const { name, Age, email, password, Transaction } = req.body;
 
+  // Validate required fields (Transaction is optional)
   if (!name || !Age || !email || !password) {
-    return next(new ErrorHandler("Field is missing", 400));
+    return next(new ErrorHandler("Required field is missing", 400));
+  }
+
+  // Check if email already exists to give a clear error
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return next(new ErrorHandler("Email already registered", 409));
   }
 
   const newUser = await User.create({
     name,
     Age,
-    Transaction,
     email,
     password,
+    Transaction,
   });
 
   await sendToken(201, newUser, res);
 });
 
+// ─── Get User By ID ───────────────────────────────────────────────────────────
 const getUserId = middleware(async (req, res, next) => {
   const { id } = req.params;
 
   if (!id) {
-    return next(new ErrorHandler("Id Error", 400));
+    return next(new ErrorHandler("User ID is required", 400));
   }
 
   const data = await User.findById(id);
+
+  // Handle case where no user matches the given ID
+  if (!data) {
+    return next(new ErrorHandler("User not found", 404));
+  }
 
   res.status(200).json({
     success: true,
@@ -59,27 +73,56 @@ const getUserId = middleware(async (req, res, next) => {
   });
 });
 
+// ─── User Login ───────────────────────────────────────────────────────────────
 const userLogin = middleware(async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return next(new ErrorHandler("Invalid Entry", 401));
+    return next(new ErrorHandler("Email and password are required", 400));
   }
 
-  // If we dont select password then NewUser will not contain password in it //
-  const NewUser = await User.findOne({ email }).select("+password");
+  // `.select("+password")` is needed because password has select: false in schema
+  const existingUser = await User.findOne({ email }).select("+password");
 
-  if (!NewUser) {
-    return next(new ErrorHandler("User not found", 404));
+  if (!existingUser) {
+    return next(new ErrorHandler("Invalid email or password", 401)); // vague on purpose for security
   }
 
-  const isMatched = await NewUser.comparePassword(password);
+  const isMatched = await existingUser.comparePassword(password);
 
   if (!isMatched) {
-    return next(new ErrorHandler("Password not Matching!!", 401));
+    return next(new ErrorHandler("Invalid email or password", 401)); // same message, no hints
   }
 
-  await sendToken(200, NewUser, res);
+  await sendToken(200, existingUser, res);
 });
 
-module.exports = { getUserId, createUser };
+const refreshToken = middleware(async (req, res, next) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    next(new ErrorHandler("No token", 404));
+  }
+
+  jwt.verify(token, process.env.REFRESH, async (err, decode) => {
+    if (err) {
+      return next(new ErrorHandler("Invalid Token", 404));
+    }
+    const user = await User.findOne({ _id: decode.id, getRefreshToken: token });
+    if (!user) {
+      return next(new ErrorHandler("Not valid User", 400));
+    }
+
+    const newAccessToken = user.accessToken();
+
+    res.status(200).json({
+      success: true,
+      token: newAccessToken,
+      userData: user,
+    });
+  });
+});
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
+// ❌ Before: userLogin was missing from exports — caused undefined handler & loop
+module.exports = { createUser, getUserId, userLogin, refreshToken };

@@ -11,7 +11,7 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(cookiePArser);
+app.use(cookiePArser());
 
 app.use("/user", userRou);
 
