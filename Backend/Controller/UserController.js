@@ -1,7 +1,7 @@
 const middleware = require("../middleware/errorFun");
 const User = require("../models/User");
 const ErrorHandler = require("../utils/prac");
-
+const jwt = require("jsonwebtoken");
 // ─── Helper ──────────────────────────────────────────────────────────────────
 // Generates tokens, stores refresh token in DB, sends cookie + JSON response
 const sendToken = async (statusCode, user, res) => {
@@ -10,7 +10,10 @@ const sendToken = async (statusCode, user, res) => {
   const refresh = user.refreshToken();
 
   // findByIdAndUpdate skips pre("save"), so password won't be re-hashed
-  await User.findByIdAndUpdate(user._id, { getRefreshToken: refresh });
+  const updatedUser = await User.findByIdAndUpdate(user._id, {
+    getRefreshToken: refresh,
+    new: true,
+  }).select("-password");
 
   const cookieOptions = {
     httpOnly: true, // not accessible via JS
@@ -22,7 +25,7 @@ const sendToken = async (statusCode, user, res) => {
   res.status(statusCode).cookie("refreshToken", refresh, cookieOptions).json({
     success: true,
     token: access,
-    user,
+    updatedUser,
   });
 };
 
@@ -60,7 +63,7 @@ const getUserId = middleware(async (req, res, next) => {
     return next(new ErrorHandler("User ID is required", 400));
   }
 
-  const data = await User.findById(id);
+  const data = await User.findById(id).select("-password");
 
   // Handle case where no user matches the given ID
   if (!data) {
@@ -97,17 +100,20 @@ const userLogin = middleware(async (req, res, next) => {
   await sendToken(200, existingUser, res);
 });
 
+// Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. //
+
 const refreshToken = middleware(async (req, res, next) => {
   const token = req.cookies.refreshToken;
 
   if (!token) {
     next(new ErrorHandler("No token", 404));
   }
-
+  // Decode has the userId as token is made with id then later that id is used to find User from DB //
   jwt.verify(token, process.env.REFRESH, async (err, decode) => {
     if (err) {
       return next(new ErrorHandler("Invalid Token", 404));
     }
+    // Ensuring and Checking token is same i.e 2nd argument(getRefreshToken)
     const user = await User.findOne({ _id: decode.id, getRefreshToken: token });
     if (!user) {
       return next(new ErrorHandler("Not valid User", 400));

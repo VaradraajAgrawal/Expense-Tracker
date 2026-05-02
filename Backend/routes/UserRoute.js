@@ -8,7 +8,9 @@ const {
 const UserRouter = express.Router();
 
 UserRouter.post("/newUser", createUser);
-UserRouter.get("/:id", getUserId);
 UserRouter.post("/login", userLogin);
+
 UserRouter.get("/refresh", refreshToken);
+
+UserRouter.get("/:id", getUserId);
 module.exports = UserRouter;
