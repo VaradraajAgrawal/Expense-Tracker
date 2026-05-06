@@ -8,10 +8,12 @@ const UserSchema = mongoose.Schema(
     Age: { type: Number, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, select: false },
-    Transaction: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Transaction", // good practice to add ref
-    },
+    Transaction: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Transaction", // good practice to add ref
+      },
+    ],
     getRefreshToken: { type: String, select: false },
   },
   { timestamps: true }, // adds createdAt & updatedAt automatically

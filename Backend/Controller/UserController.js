@@ -31,13 +31,16 @@ const sendToken = async (statusCode, user, res) => {
 
 // ─── Create User ──────────────────────────────────────────────────────────────
 const createUser = middleware(async (req, res, next) => {
-  const { name, Age, email, password, Transaction } = req.body;
+  let { name, Age, email, password, Transaction } = req.body;
 
   // Validate required fields (Transaction is optional)
   if (!name || !Age || !email || !password) {
     return next(new ErrorHandler("Required field is missing", 400));
   }
-
+  if (!Transaction) {
+    Transaction = [];
+    console.log(Transaction);
+  }
   // Check if email already exists to give a clear error
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -85,7 +88,9 @@ const userLogin = middleware(async (req, res, next) => {
   }
 
   // `.select("+password")` is needed because password has select: false in schema
-  const existingUser = await User.findOne({ email }).select("+password");
+  const existingUser = await User.findOne({ email })
+    .select("+password")
+    .populate("Transaction");
 
   if (!existingUser) {
     return next(new ErrorHandler("Invalid email or password", 401)); // vague on purpose for security
@@ -101,7 +106,6 @@ const userLogin = middleware(async (req, res, next) => {
 });
 
 // Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. //
-
 const refreshToken = middleware(async (req, res, next) => {
   const token = req.cookies.refreshToken;
 
@@ -130,5 +134,4 @@ const refreshToken = middleware(async (req, res, next) => {
 });
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
-// ❌ Before: userLogin was missing from exports — caused undefined handler & loop
 module.exports = { createUser, getUserId, userLogin, refreshToken };

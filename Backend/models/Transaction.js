@@ -1,9 +1,15 @@
-const mongoose = require("mongoose");
+const { default: mongoose } = require("mongoose");
 
-const TransactionSchema = mongoose.Schema({
+const transactionSchema = new mongoose.Schema({
   title: String,
   amount: Number,
-  User: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  category: String,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // This refers to your User model
+    required: true,
+  },
 });
 
-const Transaction = mongoose.model("Transaction", TransactionSchema);
+const Transaction = mongoose.model("Transaction", transactionSchema);
+module.exports = Transaction;
