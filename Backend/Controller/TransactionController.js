@@ -7,7 +7,7 @@ const ErrorHandler = require("../utils/prac");
 const createTransaction = middleware(async (req, res, next) => {
   const { title, amount, category } = req.body;
 
-  if (!(title || amount || category)) {
+  if (!title || !amount || !category) {
     return next(new ErrorHandler("Fields are empty!!", 400));
   }
 
@@ -35,6 +35,10 @@ const createTransaction = middleware(async (req, res, next) => {
     category,
     user: users._id,
   });
+
+  // Need to add Transaction to User and save it  or else it would be empty array //
+  users.Transaction.push(transaction._id);
+  await users.save();
 
   res.status(201).json({
     success: true,

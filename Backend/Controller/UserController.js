@@ -1,19 +1,23 @@
 const middleware = require("../middleware/errorFun");
 const User = require("../models/User");
 const ErrorHandler = require("../utils/prac");
+const Transaction = require("../models/Transaction");
 const jwt = require("jsonwebtoken");
 // ─── Helper ──────────────────────────────────────────────────────────────────
 // Generates tokens, stores refresh token in DB, sends cookie + JSON response
-const sendToken = async (statusCode, user, res) => {
+const sendToken = async (statusCode, user, res, transaction) => {
   // No need to pass user._id — instance methods use `this` internally
   const access = user.accessToken();
   const refresh = user.refreshToken();
 
   // findByIdAndUpdate skips pre("save"), so password won't be re-hashed
-  const updatedUser = await User.findByIdAndUpdate(user._id, {
-    getRefreshToken: refresh,
-    new: true,
-  }).select("-password");
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    {
+      getRefreshToken: refresh,
+    },
+    { new: true },
+  ).select("-password");
 
   const cookieOptions = {
     httpOnly: true, // not accessible via JS
@@ -22,6 +26,17 @@ const sendToken = async (statusCode, user, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
   };
 
+  if (transaction && transaction.length > 0) {
+    return res
+      .status(statusCode)
+      .cookie("refreshToken", refresh, cookieOptions)
+      .json({
+        success: true,
+        token: access,
+        updatedUser,
+        transaction,
+      });
+  }
   res.status(statusCode).cookie("refreshToken", refresh, cookieOptions).json({
     success: true,
     token: access,
@@ -87,14 +102,19 @@ const userLogin = middleware(async (req, res, next) => {
     return next(new ErrorHandler("Email and password are required", 400));
   }
 
-  // `.select("+password")` is needed because password has select: false in schema
-  const existingUser = await User.findOne({ email })
-    .select("+password")
-    .populate("Transaction");
+  // `.select("+password")` is needed because password has select: false  in schema and we populate User and get Transaction data //
+
+  // const existingUser = await User.findOne({ email })
+  //   .select("+password")
+  //   .populate("Transaction");
+
+  // Another way to fetch User and Transaction detail is that we use .find instead of populate . We should use populate for small details and .find for large details such as transactions will be many  //
+  const existingUser = await User.findOne({ email }).select("+password");
 
   if (!existingUser) {
-    return next(new ErrorHandler("Invalid email or password", 401)); // vague on purpose for security
+    return next(new ErrorHandler("No user found", 404));
   }
+  const transaction = await Transaction.find({ user: existingUser._id });
 
   const isMatched = await existingUser.comparePassword(password);
 
@@ -102,7 +122,7 @@ const userLogin = middleware(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password", 401)); // same message, no hints
   }
 
-  await sendToken(200, existingUser, res);
+  await sendToken(200, existingUser, res, transaction);
 });
 
 // Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. //
