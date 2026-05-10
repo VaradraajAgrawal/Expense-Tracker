@@ -57,4 +57,84 @@ const deleteTransaction = middleware(async (req, res, next) => {
   });
 });
 
-module.exports = { createTransaction, deleteTransaction };
+const stats = middleware(async (req, res, next) => {
+  const allTransaction = await Transcation.countDocuments({
+    user: req.user._id,
+  });
+  // const detail = await Transcation.aggregate([
+  //   {
+  //     $match: { user: req.user._id },
+  //   },
+  //   {
+  //     $group: {
+  //       _id: "$category",
+  //       totalAmount: { $sum: "$amount" },
+  //       totalTransaction: { $sum: 1 },
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       _id: 0,
+  //       category: "$_id",
+  //       Amount: "$totalAmount",
+  //       Transaction: "$totalTransaction",
+  //     },
+  //   },
+  // ]);
+
+  const detailAdvance = await Transcation.aggregate([
+    {
+      $match: { user: req.user._id },
+    },
+    {
+      $facet: {
+        // Task 1: Count all transactions
+        overallStats: [
+          {
+            $group: {
+              _id: null,
+              totalCount: { $sum: 1 },
+              grandTotalAmount: { $sum: "$amount" },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              Alltransaction: "$totalCount",
+              AllAmount: "$grandTotalAmount",
+            },
+          },
+        ],
+        Categorized: [
+          {
+            $group: {
+              _id: "$category",
+              Amount: { $sum: "$amount" },
+              Transaction: { $sum: 1 },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  // if (detail.length < 1) {
+  //   return res.json({
+  //     success: true,
+  //     data: [],
+  //   });
+  // }
+  // res.status(200).json({
+  //   success: true,
+  //   detail,
+  //   allTransaction,
+  // });
+  const result = detailAdvance[0];
+  res.status(200).json({
+    totalAmt: result.overallStats[0].AllAmount,
+    totalTransaction: result.overallStats[0].Alltransaction,
+    breakdown: result.Categorized,
+  });
+});
+
+module.exports = { createTransaction, deleteTransaction, stats };

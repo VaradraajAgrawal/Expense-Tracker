@@ -113,13 +113,12 @@ const userLogin = middleware(async (req, res, next) => {
   if (!existingUser) {
     return next(new ErrorHandler("No user found", 404));
   }
-  const transaction = await Transaction.find({ user: existingUser._id });
-
   const isMatched = await existingUser.comparePassword(password);
 
   if (!isMatched) {
     return next(new ErrorHandler("Invalid email or password", 401)); // same message, no hints
   }
+  const transaction = await Transaction.find({ user: isMatched._id });
 
   await sendToken(200, existingUser, res, transaction);
 });
@@ -151,9 +150,6 @@ const refreshToken = middleware(async (req, res, next) => {
     });
   });
 });
-
-const 
-
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 module.exports = { createUser, getUserId, userLogin, refreshToken };

@@ -13,7 +13,7 @@ const AuthFunction = middleware(async (req, res, next) => {
   let token = Auth.split(" ")[1];
 
   const decode = await jwt.verify(token, process.env.SECRET);
-  // We search by ID and not _id as when we used .sign(id: this._id) this made a new object with key of id and not _id //
+  // We search by ID and not _id as when we used .sign(id: this._id) this made a new object with key of id and not _id moreover req.user will contain _id and not id as we are fetching data from database//
   req.user = await User.findById(decode.id);
 
   next();
