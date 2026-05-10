@@ -2,7 +2,6 @@ const middleware = require("../middleware/errorFun");
 const User = require("../models/User");
 const ErrorHandler = require("../utils/prac");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
 
 const AuthFunction = middleware(async (req, res, next) => {
   const Auth = req.headers.authorization;
@@ -10,12 +9,14 @@ const AuthFunction = middleware(async (req, res, next) => {
   if (!Auth || !Auth.startsWith("Bearer")) {
     return next(new ErrorHandler("Token Error", 400));
   }
-
+  // Access token here and not Refresh Token //
   let token = Auth.split(" ")[1];
 
-  const decode = jwt.verify(token, process.env.SECRET);
-
-  req.user = await User.findById(decode._id);
+  const decode = await jwt.verify(token, process.env.SECRET);
+  // We search by ID and not _id as when we used .sign(id: this._id) this made a new object with key of id and not _id //
+  req.user = await User.findById(decode.id);
 
   next();
 });
+
+module.exports = AuthFunction;

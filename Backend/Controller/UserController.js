@@ -54,7 +54,6 @@ const createUser = middleware(async (req, res, next) => {
   }
   if (!Transaction) {
     Transaction = [];
-    console.log(Transaction);
   }
   // Check if email already exists to give a clear error
   const existingUser = await User.findOne({ email });
@@ -125,7 +124,7 @@ const userLogin = middleware(async (req, res, next) => {
   await sendToken(200, existingUser, res, transaction);
 });
 
-// Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. //
+// Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. Verify cant store anything //
 const refreshToken = middleware(async (req, res, next) => {
   const token = req.cookies.refreshToken;
 
@@ -152,6 +151,9 @@ const refreshToken = middleware(async (req, res, next) => {
     });
   });
 });
+
+const 
+
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 module.exports = { createUser, getUserId, userLogin, refreshToken };

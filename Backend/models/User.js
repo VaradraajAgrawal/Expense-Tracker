@@ -32,12 +32,12 @@ UserSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// Generate short-lived access token using `this` (no need to pass userId)
+// Generate short-lived access token using `this` (no need to pass userId) and new payload is being created with new key of id instead of _id //
 UserSchema.methods.accessToken = function () {
   return jwt.sign({ id: this._id }, process.env.SECRET, { expiresIn: "15m" });
 };
 
-// Generate long-lived refresh token using `this`
+// Generate long-lived refresh token using `this` and new payload is being created with new key of id instead of _id //
 UserSchema.methods.refreshToken = function () {
   return jwt.sign({ id: this._id }, process.env.REFRESH, { expiresIn: "7d" });
 };
