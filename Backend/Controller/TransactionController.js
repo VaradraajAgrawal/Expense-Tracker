@@ -61,27 +61,6 @@ const stats = middleware(async (req, res, next) => {
   const allTransaction = await Transcation.countDocuments({
     user: req.user._id,
   });
-  // const detail = await Transcation.aggregate([
-  //   {
-  //     $match: { user: req.user._id },
-  //   },
-  //   {
-  //     $group: {
-  //       _id: "$category",
-  //       totalAmount: { $sum: "$amount" },
-  //       totalTransaction: { $sum: 1 },
-  //     },
-  //   },
-  //   {
-  //     $project: {
-  //       _id: 0,
-  //       category: "$_id",
-  //       Amount: "$totalAmount",
-  //       Transaction: "$totalTransaction",
-  //     },
-  //   },
-  // ]);
-
   const detailAdvance = await Transcation.aggregate([
     {
       $match: { user: req.user._id },
@@ -118,17 +97,6 @@ const stats = middleware(async (req, res, next) => {
     },
   ]);
 
-  // if (detail.length < 1) {
-  //   return res.json({
-  //     success: true,
-  //     data: [],
-  //   });
-  // }
-  // res.status(200).json({
-  //   success: true,
-  //   detail,
-  //   allTransaction,
-  // });
   const result = detailAdvance[0];
   res.status(200).json({
     totalAmt: result.overallStats[0].AllAmount,
@@ -137,4 +105,37 @@ const stats = middleware(async (req, res, next) => {
   });
 });
 
-module.exports = { createTransaction, deleteTransaction, stats };
+const updateTransaction = middleware(async (req, res, next) => {
+  const updated = await Transcation.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updated) {
+    return next(new ErrorHandler("Transaction not Found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: updated,
+  });
+});
+
+const normalView = middleware(async (req, res, next) => {
+  const allTra = await Transcation.find({ user: req.user._id });
+  if (!allTra) {
+    return next(new ErrorHandler("Transaction Error", 400));
+  }
+  res.status(200).json({
+    success: true,
+    allTra,
+  });
+});
+
+module.exports = {
+  normalView,
+  createTransaction,
+  deleteTransaction,
+  stats,
+  updateTransaction,
+};
