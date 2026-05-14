@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const middleware = require("../middleware/errorFun");
 const Transcation = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
+const Transaction = require("../models/Transaction");
 
 const createTransaction = middleware(async (req, res, next) => {
   const { title, amount, category } = req.body;
@@ -45,7 +46,7 @@ const deleteTransaction = middleware(async (req, res, next) => {
   if (!id) {
     return next(new ErrorHandler("Transaction not found!!", 404));
   }
-  await Transcation.findOneAndDelete(id);
+  await Transcation.findOneAndDelete({ _id: id, user: req.user._id });
   user.Transaction.pull(id);
 
   await user.save();
@@ -58,9 +59,6 @@ const deleteTransaction = middleware(async (req, res, next) => {
 });
 
 const stats = middleware(async (req, res, next) => {
-  const allTransaction = await Transcation.countDocuments({
-    user: req.user._id,
-  });
   const detailAdvance = await Transcation.aggregate([
     {
       $match: { user: req.user._id },
@@ -106,10 +104,14 @@ const stats = middleware(async (req, res, next) => {
 });
 
 const updateTransaction = middleware(async (req, res, next) => {
-  const updated = await Transcation.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const updated = await Transcation.findByIdAndUpdate(
+    { _id: req.params.id, user: req.user._id },
+    req.body,
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
 
   if (!updated) {
     return next(new ErrorHandler("Transaction not Found", 404));
@@ -123,7 +125,7 @@ const updateTransaction = middleware(async (req, res, next) => {
 
 const normalView = middleware(async (req, res, next) => {
   const allTra = await Transcation.find({ user: req.user._id });
-  if (!allTra) {
+  if (allTra.length === 0) {
     return next(new ErrorHandler("Transaction Error", 400));
   }
   res.status(200).json({
@@ -132,10 +134,63 @@ const normalView = middleware(async (req, res, next) => {
   });
 });
 
+const filtered = middleware(async (req, res, next) => {
+  let date = await Transcation.find({ user: req.user._id });
+  const fill = await Transaction.find({ user: req.user._id })
+    .where("amount")
+    .gte(50)
+    .lte(200);
+
+  let week = await Transaction.find({ user: req.user._id })
+    .where("createdAt")
+    .gte(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  let now = new Date();
+
+  let reqDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  let month = await Transaction.find({
+    user: req.user._id,
+    createdAt: { $gte: reqDate },
+  });
+
+  let months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+  ];
+
+  months = months.indexOf("May");
+
+  const filMonth = new Date(2026, months, 1);
+
+  const dup = new Date(2026, months + 1, 1);
+  const specificMonth = await Transaction.find({ user: req.user._id })
+    .where("createdAt")
+    .gte(filMonth)
+    .lt(dup);
+
+  console.log(specificMonth);
+
+  res.status(200).json({
+    success: true,
+    data: fill,
+    date,
+  });
+});
+
 module.exports = {
   normalView,
   createTransaction,
   deleteTransaction,
   stats,
+  filtered,
   updateTransaction,
 };
