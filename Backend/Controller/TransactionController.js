@@ -133,73 +133,129 @@ const normalView = middleware(async (req, res, next) => {
     allTra,
   });
 });
-
+// ================= CURRENT MONTH =================
 const monthFilter = async (user) => {
   const now = new Date();
+
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const filtered = await Transcation.find({ user: user._id })
-    .where("createdAt")
-    .gte(thisMonth)
-    .lte(nextMonth);
+  const filtered = await Transaction.find({
+    user: user._id,
+    createdAt: {
+      $gte: thisMonth,
+      $lt: nextMonth,
+    },
+  });
 
   return filtered;
 };
 
-const speMonth = async (month, user) => {
-  const now = new Date(month);
-  const sm = new Date(now.getFullYear(), now.getMonth(), 1);
-  const nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+// ================= SPECIFIC MONTH =================
+const specificMonth = async (month, user) => {
+  const parsedDate = new Date(month);
 
-  const filtered = await Transaction.find({ user: user._id })
-    .where("createdAt")
-    .gte(sm)
-    .lt(nm); // As lte would consider 12:00 in same month //
-  return filtered;
-};
+  if (isNaN(parsedDate)) {
+    throw new ErrorHandler("Invalid Month", 400);
+  }
 
-const yrsMnt = async (strMonth, endMonth, user) => {
-  let strDate = new Date(strMonth);
-  let endDate = new Date(endMonth);
-
-  strDate = new Date(
-    strDate.getFullYear(),
-    strDate.getMonth(),
-    strDate.getDate(),
-  );
-  endDate = new Date(
-    endDate.getFullYear(),
-    endDate.getMonth(),
-    endDate.getDate(),
+  const startMonth = new Date(
+    parsedDate.getFullYear(),
+    parsedDate.getMonth(),
+    1,
   );
 
-  const filtered = await Transaction.find({ user: user._id })
-    .where("createdAt")
-    .gte(strDate)
-    .lt(endDate);
+  const nextMonth = new Date(
+    parsedDate.getFullYear(),
+    parsedDate.getMonth() + 1,
+    1,
+  );
+
+  const filtered = await Transaction.find({
+    user: user._id,
+    createdAt: {
+      $gte: startMonth,
+      $lt: nextMonth,
+    },
+  });
 
   return filtered;
 };
 
+// ================= SPECIFIC YEAR =================
+const oneYear = async (year, user) => {
+  const startYear = new Date(year, 0, 1);
+
+  const nextYear = new Date(Number(year) + 1, 0, 1);
+
+  if (isNaN(startYear) || isNaN(nextYear)) {
+    throw new ErrorHandler("Invalid Year", 400);
+  }
+
+  const filtered = await Transaction.find({
+    user: user._id,
+    createdAt: {
+      $gte: startYear,
+      $lt: nextYear,
+    },
+  });
+
+  return filtered;
+};
+
+// ================= CUSTOM DATE RANGE =================
+const rangeFilter = async (startDate, endDate, user) => {
+  const start = new Date(startDate);
+
+  const end = new Date(endDate);
+
+  if (isNaN(start) || isNaN(end)) {
+    throw new ErrorHandler("Invalid Date Range", 400);
+  }
+
+  const filtered = await Transaction.find({
+    user: user._id,
+    createdAt: {
+      $gte: start,
+      $lt: end,
+    },
+  });
+
+  return filtered;
+};
+
+// ================= MAIN FILTER =================
 const mainFilter = middleware(async (req, res, next) => {
-  const { thisMonth, startDate, endDate } = req.query;
+  const { thisMonth, startDate, endDate, thisYear } = req.query;
 
   let data;
-  if (thisMonth && !startDate && !endDate) {
+
+  // Current Month
+  if (thisMonth && !startDate && !endDate && !thisYear) {
     data = await monthFilter(req.user);
-  } else if (startDate && !endDate && !thisMonth) {
-    data = await speMonth(startDate, req.user);
-  } else if (startDate && endDate) {
-    data = await yrsMnt(startDate, endDate, req.user);
-  } else if (year && !month) {
-    console.log(year);
+  }
+
+  // Specific Month
+  else if (startDate && !endDate && !thisYear) {
+    data = await specificMonth(startDate, req.user);
+  }
+
+  // Date Range
+  else if (startDate && endDate && !thisYear) {
+    data = await rangeFilter(startDate, endDate, req.user);
+  }
+
+  // Specific Year
+  else if (thisYear) {
+    data = await oneYear(thisYear, req.user);
   } else {
-    console.log("ERROR OCCURED");
+    return next(new ErrorHandler("Invalid Query Parameters", 400));
   }
 
   res.status(200).json({
     success: true,
+    count: data.length,
     data,
   });
 });
