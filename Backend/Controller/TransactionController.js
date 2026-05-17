@@ -77,8 +77,8 @@ const stats = middleware(async (req, res, next) => {
           {
             $project: {
               _id: 0,
-              Alltransaction: "$totalCount",
-              AllAmount: "$grandTotalAmount",
+              TotalTransaction: "$totalCount",
+              TotalAmount: "$grandTotalAmount",
             },
           },
         ],
@@ -97,8 +97,8 @@ const stats = middleware(async (req, res, next) => {
 
   const result = detailAdvance[0];
   res.status(200).json({
-    totalAmt: result.overallStats[0].AllAmount,
-    totalTransaction: result.overallStats[0].Alltransaction,
+    totalAmt: result.overallStats[0].TotalAmount,
+    totalTransaction: result.overallStats[0].TotalTransaction,
     breakdown: result.Categorized,
   });
 });
@@ -134,55 +134,73 @@ const normalView = middleware(async (req, res, next) => {
   });
 });
 
-const filtered = middleware(async (req, res, next) => {
-  let date = await Transcation.find({ user: req.user._id });
-  const fill = await Transaction.find({ user: req.user._id })
-    .where("amount")
-    .gte(50)
-    .lte(200);
+const monthFilter = async (user) => {
+  const now = new Date();
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  let week = await Transaction.find({ user: req.user._id })
+  const filtered = await Transcation.find({ user: user._id })
     .where("createdAt")
-    .gte(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    .gte(thisMonth)
+    .lte(nextMonth);
 
-  let now = new Date();
+  return filtered;
+};
 
-  let reqDate = new Date(now.getFullYear(), now.getMonth(), 1);
+const speMonth = async (month, user) => {
+  const now = new Date(month);
+  const sm = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  let month = await Transaction.find({
-    user: req.user._id,
-    createdAt: { $gte: reqDate },
-  });
-
-  let months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-  ];
-
-  months = months.indexOf("May");
-
-  const filMonth = new Date(2026, months, 1);
-
-  const dup = new Date(2026, months + 1, 1);
-  const specificMonth = await Transaction.find({ user: req.user._id })
+  const filtered = await Transaction.find({ user: user._id })
     .where("createdAt")
-    .gte(filMonth)
-    .lt(dup);
+    .gte(sm)
+    .lt(nm); // As lte would consider 12:00 in same month //
+  return filtered;
+};
 
-  console.log(specificMonth);
+const yrsMnt = async (strMonth, endMonth, user) => {
+  let strDate = new Date(strMonth);
+  let endDate = new Date(endMonth);
+
+  strDate = new Date(
+    strDate.getFullYear(),
+    strDate.getMonth(),
+    strDate.getDate(),
+  );
+  endDate = new Date(
+    endDate.getFullYear(),
+    endDate.getMonth(),
+    endDate.getDate(),
+  );
+
+  const filtered = await Transaction.find({ user: user._id })
+    .where("createdAt")
+    .gte(strDate)
+    .lt(endDate);
+
+  return filtered;
+};
+
+const mainFilter = middleware(async (req, res, next) => {
+  const { thisMonth, startDate, endDate } = req.query;
+
+  let data;
+  if (thisMonth && !startDate && !endDate) {
+    data = await monthFilter(req.user);
+  } else if (startDate && !endDate && !thisMonth) {
+    data = await speMonth(startDate, req.user);
+  } else if (startDate && endDate) {
+    data = await yrsMnt(startDate, endDate, req.user);
+  } else if (year && !month) {
+    console.log(year);
+  } else {
+    console.log("ERROR OCCURED");
+  }
 
   res.status(200).json({
     success: true,
-    data: fill,
-    date,
+    data,
   });
 });
 
@@ -191,6 +209,6 @@ module.exports = {
   createTransaction,
   deleteTransaction,
   stats,
-  filtered,
   updateTransaction,
+  mainFilter,
 };
