@@ -2,7 +2,7 @@ const { default: mongoose } = require("mongoose");
 
 const transactionSchema = new mongoose.Schema(
   {
-    title: String,
+    type: String,
     amount: Number,
     category: String,
     user: {
@@ -16,3 +16,7 @@ const transactionSchema = new mongoose.Schema(
 
 const Transaction = mongoose.model("Transaction", transactionSchema);
 module.exports = Transaction;
+
+// "type": "Expense",
+// "amount": 300,
+// "category": "Electronics

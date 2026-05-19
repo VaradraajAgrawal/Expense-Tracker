@@ -6,9 +6,9 @@ const Transaction = require("../models/Transaction");
 
 // ================= CRUD OPERATIONS ================= //
 const createTransaction = middleware(async (req, res, next) => {
-  const { title, amount, category } = req.body;
+  const { type, amount, category } = req.body;
   const users = req.user;
-  if (!title || !amount || !category) {
+  if (!type || !amount || !category) {
     return next(new ErrorHandler("Fields are empty!!", 400));
   }
   if (!users) {
@@ -24,7 +24,7 @@ const createTransaction = middleware(async (req, res, next) => {
   //   });
 
   const transaction = await Transcation.create({
-    title,
+    type,
     amount,
     category,
     user: users._id,
@@ -92,7 +92,7 @@ const normalView = middleware(async (req, res, next) => {
 });
 
 // ================= CURRENT MONTH =================
-const monthFilter = async (page, user) => {
+const monthFilter = async (user) => {
   const now = new Date();
 
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -184,6 +184,64 @@ const rangeFilter = async (startDate, endDate, user) => {
   return filtered;
 };
 
+const specificMonthCalculator = async (month, user) => {
+  const date = new Date(month);
+  const sm = new Date(date.getFullYear(), date.getMonth(), 1);
+  const nm = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
+  const calculateAmt = await Transaction.aggregate([
+    {
+      $match: { user: user._id, createdAt: { $gte: sm, $lt: nm } },
+    },
+    {
+      $facet: {
+        overAllStats: [
+          {
+            $group: {
+              _id: null,
+              toalIncomeAmount: {
+                $sum: {
+                  $cond: [{ $eq: ["$type", "Income"] }, "$amount", 0],
+                },
+              },
+              totalExpense: {
+                $sum: {
+                  $cond: [{ $eq: ["$type", "Expense"] }, "$amount", 0],
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              netValue: {
+                $subtract: ["$toalIncomeAmount", "$totalExpense"],
+              },
+              totalExpense: "$totalExpense",
+              totalIncome: "$toalIncomeAmount",
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const result = calculateAmt[0];
+
+  if (result.overAllStats.length === 0) {
+    return {
+      totalExpense: 0,
+      totalIncome: 0,
+      netValue: 0,
+    };
+  }
+
+  return {
+    totalExpense: result.overAllStats[0].totalExpense,
+    totalIncome: result.overAllStats[0].totalIncome,
+    netValue: result.overAllStats[0].netValue,
+  };
+};
+
 const helpThisMonth = async (users) => {
   const now = new Date();
   let sm = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -203,12 +261,12 @@ const helpThisMonth = async (users) => {
               totalIncome: {
                 $sum: {
                   // here cond takes 3 param. 1st is condition 2nd is if true then what lastly 3rd if false then what //
-                  $cond: [{ $eq: ["$title", "Income"] }, "$amount", 0],
+                  $cond: [{ $eq: ["$type", "Income"] }, "$amount", 0],
                 },
               },
               totalExpense: {
                 $sum: {
-                  $cond: [{ $eq: ["$title", "Expense"] }, "$amount", 0],
+                  $cond: [{ $eq: ["$type", "Expense"] }, "$amount", 0],
                 },
               },
               totalTransaction: {
@@ -218,9 +276,6 @@ const helpThisMonth = async (users) => {
           },
           {
             $project: {
-              totalTransaction: "$totalTransaction",
-              totalIncome: "$totalIncome",
-              totalExpense: "$totalExpense",
               netValue: {
                 $subtract: ["$totalIncome", "$totalExpense"],
               },
@@ -231,7 +286,7 @@ const helpThisMonth = async (users) => {
     },
   ]);
   if (calcu.length === 0) {
-    return "No Transaction For This Month";
+    return "No Transaction For the current Month";
   }
   const result = calcu[0];
 
@@ -247,17 +302,15 @@ const helpThisMonth = async (users) => {
 const stats = middleware(async (req, res, next) => {
   const { thisMonth, startDate, endDate, thisYear, page } = req.query;
 
-  let data;
   let cal;
   // Current Month
   if (thisMonth && !startDate && !endDate && !thisYear) {
-    data = await monthFilter(page, req.user);
     cal = await helpThisMonth(req.user);
   }
 
   // Specific Month
   else if (startDate && !endDate && !thisYear) {
-    data = await specificMonth(startDate, req.user);
+    cal = await specificMonthCalculator(startDate, req.user);
   }
 
   // Date Range
@@ -286,7 +339,7 @@ const mainFilter = middleware(async (req, res, next) => {
 
   // Current Month
   if (thisMonth && !startDate && !endDate && !thisYear) {
-    data = await monthFilter(page, req.user);
+    data = await monthFilter(req.user);
   }
 
   // Specific Month
