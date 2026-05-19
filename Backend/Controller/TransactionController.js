@@ -4,6 +4,7 @@ const Transcation = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
 const Transaction = require("../models/Transaction");
 
+// ================= CRUD OPERATIONS ================= //
 const createTransaction = middleware(async (req, res, next) => {
   const { title, amount, category } = req.body;
   const users = req.user;
@@ -58,51 +59,6 @@ const deleteTransaction = middleware(async (req, res, next) => {
   });
 });
 
-const stats = middleware(async (req, res, next) => {
-  const detailAdvance = await Transcation.aggregate([
-    {
-      $match: { user: req.user._id },
-    },
-    {
-      $facet: {
-        // Task 1: Count all transactions
-        overallStats: [
-          {
-            $group: {
-              _id: null,
-              totalCount: { $sum: 1 },
-              grandTotalAmount: { $sum: "$amount" },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              TotalTransaction: "$totalCount",
-              TotalAmount: "$grandTotalAmount",
-            },
-          },
-        ],
-        Categorized: [
-          {
-            $group: {
-              _id: "$category",
-              Amount: { $sum: "$amount" },
-              Transaction: { $sum: 1 },
-            },
-          },
-        ],
-      },
-    },
-  ]);
-
-  const result = detailAdvance[0];
-  res.status(200).json({
-    totalAmt: result.overallStats[0].TotalAmount,
-    totalTransaction: result.overallStats[0].TotalTransaction,
-    breakdown: result.Categorized,
-  });
-});
-
 const updateTransaction = middleware(async (req, res, next) => {
   const updated = await Transcation.findByIdAndUpdate(
     { _id: req.params.id, user: req.user._id },
@@ -123,6 +79,7 @@ const updateTransaction = middleware(async (req, res, next) => {
   });
 });
 
+// ================= ALL TRANSACTION  =================
 const normalView = middleware(async (req, res, next) => {
   const allTra = await Transcation.find({ user: req.user._id });
   if (allTra.length === 0) {
@@ -133,15 +90,16 @@ const normalView = middleware(async (req, res, next) => {
     allTra,
   });
 });
+
 // ================= CURRENT MONTH =================
-const monthFilter = async (user) => {
+const monthFilter = async (page, user) => {
   const now = new Date();
 
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const filtered = await Transaction.find({
+  let filtered = await Transaction.find({
     user: user._id,
     createdAt: {
       $gte: thisMonth,
@@ -149,6 +107,7 @@ const monthFilter = async (user) => {
     },
   });
 
+  // filtered = filtered.skip((page - 1) * 10).limit(10);
   return filtered;
 };
 
@@ -225,15 +184,109 @@ const rangeFilter = async (startDate, endDate, user) => {
   return filtered;
 };
 
+const helpThisMonth = async (users) => {
+  const now = new Date();
+  let sm = new Date(now.getFullYear(), now.getMonth(), 1);
+  let nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+  let calcu = await Transaction.aggregate([
+    {
+      $match: { user: users._id, createdAt: { $gte: sm, $lt: nm } },
+    },
+    {
+      $facet: {
+        overAllStats: [
+          {
+            $group: {
+              _id: null,
+              // here sum does that it adds if only the title is Income or else it will remain 0 //
+              totalIncome: {
+                $sum: {
+                  // here cond takes 3 param. 1st is condition 2nd is if true then what lastly 3rd if false then what //
+                  $cond: [{ $eq: ["$title", "Income"] }, "$amount", 0],
+                },
+              },
+              totalExpense: {
+                $sum: {
+                  $cond: [{ $eq: ["$title", "Expense"] }, "$amount", 0],
+                },
+              },
+              totalTransaction: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $project: {
+              totalTransaction: "$totalTransaction",
+              totalIncome: "$totalIncome",
+              totalExpense: "$totalExpense",
+              netValue: {
+                $subtract: ["$totalIncome", "$totalExpense"],
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+  if (calcu.length === 0) {
+    return "No Transaction For This Month";
+  }
+  const result = calcu[0];
+
+  return {
+    totalExpense: result.overAllStats[0].totalExpense,
+    totalIncome: result.overAllStats[0].totalIncome,
+    totalTransaction: result.overAllStats[0].totalTransaction,
+    netValue: result.overAllStats[0].netValue,
+  };
+};
+
+// ================= Calculation Main Function ================= //
+const stats = middleware(async (req, res, next) => {
+  const { thisMonth, startDate, endDate, thisYear, page } = req.query;
+
+  let data;
+  let cal;
+  // Current Month
+  if (thisMonth && !startDate && !endDate && !thisYear) {
+    data = await monthFilter(page, req.user);
+    cal = await helpThisMonth(req.user);
+  }
+
+  // Specific Month
+  else if (startDate && !endDate && !thisYear) {
+    data = await specificMonth(startDate, req.user);
+  }
+
+  // Date Range
+  else if (startDate && endDate && !thisYear) {
+    data = await rangeFilter(startDate, endDate, req.user);
+  }
+
+  // Specific Year
+  else if (thisYear) {
+    data = await oneYear(thisYear, req.user);
+  } else {
+    return next(new ErrorHandler("Invalid Query Parameters", 400));
+  }
+
+  res.status(200).json({
+    success: true,
+    cal,
+  });
+});
+
 // ================= MAIN FILTER =================
 const mainFilter = middleware(async (req, res, next) => {
-  const { thisMonth, startDate, endDate, thisYear } = req.query;
+  const { thisMonth, startDate, endDate, thisYear, page } = req.query;
 
   let data;
 
   // Current Month
   if (thisMonth && !startDate && !endDate && !thisYear) {
-    data = await monthFilter(req.user);
+    data = await monthFilter(page, req.user);
   }
 
   // Specific Month
