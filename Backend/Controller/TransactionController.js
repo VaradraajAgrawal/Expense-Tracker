@@ -215,36 +215,51 @@ const normalView = middleware(async (req, res, next) => {
     allTra,
   });
 });
+// ================= Pagination Helper Function =================
+const paginationHelper = async (page, filter) => {
+  let limitQauntity = 10;
+  let parse = parseInt(page) || 1;
+
+  let totalDocuments = await Transaction.countDocuments(filter);
+  let maxPage = Math.ceil(totalDocuments / limitQauntity, 1);
+
+  if (parse > maxPage || parse <= 0 || isNaN(parse)) {
+    parse = 1;
+  }
+
+  let skip = (parse - 1) * limitQauntity;
+  let filtered = await Transaction.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitQauntity);
+
+  return {
+    maxPage,
+    filtered,
+    parse,
+  };
+};
 
 // ================= CURRENT MONTH =================
 const monthFilter = async (user, page) => {
   const now = new Date();
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  if (page < 0 || !page) {
-    page = 1;
-  }
-
-  const parse = parseInt(page, 10) || 1;
   const limitAmt = 10;
-  const skip = (parse - 1) * limitAmt;
-
-  let filtered = await Transaction.find({
+  const fil = {
     user: user._id,
     createdAt: {
       $gte: thisMonth,
       $lt: nextMonth,
     },
-  })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limitAmt);
+  };
 
+  let { maxPage, filtered, parse } = await paginationHelper(page, fil);
   return filtered;
 };
 
 // ================= SPECIFIC MONTH =================
-const specificMonth = async (month, user) => {
+const specificMonth = async (month, user, page) => {
   const parsedDate = new Date(month);
 
   if (isNaN(parsedDate)) {
@@ -263,15 +278,13 @@ const specificMonth = async (month, user) => {
     1,
   );
 
-  const filtered = await Transaction.find({
+  let fil = {
     user: user._id,
-    createdAt: {
-      $gte: startMonth,
-      $lt: nextMonth,
-    },
-  });
+    createdAt: { $gte: startMonth, $lt: nextMonth },
+  };
 
-  return filtered;
+  let { maxPage, filtered, parse } = await paginationHelper(page, fil);
+  return { maxPage, filtered, parse };
 };
 
 // ================= SPECIFIC YEAR =================
