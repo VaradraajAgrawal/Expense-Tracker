@@ -79,6 +79,131 @@ const updateTransaction = middleware(async (req, res, next) => {
   });
 });
 
+const facetFunction = async (sm, nm, user) => {
+  const calculateAmt = await Transaction.aggregate([
+    {
+      $match: { user: user._id, createdAt: { $gte: sm, $lt: nm } },
+    },
+    {
+      $facet: {
+        overAllStats: [
+          {
+            $group: {
+              _id: null,
+              toalIncomeAmount: {
+                $sum: {
+                  $cond: [{ $eq: ["$type", "Income"] }, "$amount", 0],
+                },
+              },
+              totalExpense: {
+                $sum: {
+                  $cond: [{ $eq: ["$type", "Expense"] }, "$amount", 0],
+                },
+              },
+              totalTransaction: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              netValue: {
+                $subtract: ["$toalIncomeAmount", "$totalExpense"],
+              },
+              totalExpense: "$totalExpense",
+              totalIncome: "$toalIncomeAmount",
+              totalTransaction: "$totalTransaction",
+            },
+          },
+        ],
+      },
+    },
+  ]);
+  const result = calculateAmt[0];
+
+  if (result.overAllStats.length === 0) {
+    return {
+      totalExpense: 0,
+      totalIncome: 0,
+      netValue: 0,
+    };
+  }
+
+  return {
+    totalTransaction: result.overAllStats[0].totalTransaction,
+    totalExpense: result.overAllStats[0].totalExpense,
+    totalIncome: result.overAllStats[0].totalIncome,
+    netValue: result.overAllStats[0].netValue,
+  };
+};
+
+const oneYearCalc = async (year, user) => {
+  const date = new Date(year);
+  const nm = new Date(Number(date.getFullYear()) + 1, 0, 1);
+  console.log(nm);
+
+  let calculator = await facetFunction(date, nm, user);
+  return calculator;
+};
+
+const yearAndMonthCalculator = async (start, end, user) => {
+  const strdate = new Date(start);
+  const enddate = new Date(end);
+
+  let calculator = await facetFunction(strdate, enddate, user);
+
+  return calculator;
+};
+
+const specificMonthCalculator = async (month, user) => {
+  const date = new Date(month);
+  const sm = new Date(date.getFullYear(), date.getMonth(), 1);
+  const nm = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
+  let calculateAmt = await facetFunction(sm, nm, user);
+  return calculateAmt;
+};
+
+const helpThisMonth = async (user) => {
+  const now = new Date();
+  let sm = new Date(now.getFullYear(), now.getMonth(), 1);
+  let nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+  let calcu = await facetFunction(sm, nm, user);
+  return calcu;
+};
+
+// ================= Calculation Main Function ================= //
+const stats = middleware(async (req, res, next) => {
+  const { thisMonth, startDate, endDate, thisYear, page } = req.query;
+
+  let cal;
+  // Current Month
+  if (thisMonth && !startDate && !endDate && !thisYear) {
+    cal = await helpThisMonth(req.user);
+  }
+
+  // Specific Month
+  else if (startDate && !endDate && !thisYear) {
+    cal = await specificMonthCalculator(startDate, req.user);
+  }
+
+  // Date Range
+  else if (startDate && endDate && !thisYear) {
+    cal = await yearAndMonthCalculator(startDate, endDate, req.user);
+  }
+
+  // Specific Year
+  else if (thisYear) {
+    cal = await oneYearCalc(thisYear, req.user);
+  } else {
+    return next(new ErrorHandler("Invalid Query Parameters", 400));
+  }
+
+  res.status(200).json({
+    success: true,
+    cal,
+  });
+});
+
 // ================= ALL TRANSACTION  =================
 const normalView = middleware(async (req, res, next) => {
   const allTra = await Transcation.find({ user: req.user._id });
@@ -92,12 +217,17 @@ const normalView = middleware(async (req, res, next) => {
 });
 
 // ================= CURRENT MONTH =================
-const monthFilter = async (user) => {
+const monthFilter = async (user, page) => {
   const now = new Date();
-
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  if (page < 0 || !page) {
+    page = 1;
+  }
+
+  const parse = parseInt(page, 10) || 1;
+  const limitAmt = 10;
+  const skip = (parse - 1) * limitAmt;
 
   let filtered = await Transaction.find({
     user: user._id,
@@ -105,9 +235,11 @@ const monthFilter = async (user) => {
       $gte: thisMonth,
       $lt: nextMonth,
     },
-  });
+  })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitAmt);
 
-  // filtered = filtered.skip((page - 1) * 10).limit(10);
   return filtered;
 };
 
@@ -184,153 +316,6 @@ const rangeFilter = async (startDate, endDate, user) => {
   return filtered;
 };
 
-const specificMonthCalculator = async (month, user) => {
-  const date = new Date(month);
-  const sm = new Date(date.getFullYear(), date.getMonth(), 1);
-  const nm = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-
-  const calculateAmt = await Transaction.aggregate([
-    {
-      $match: { user: user._id, createdAt: { $gte: sm, $lt: nm } },
-    },
-    {
-      $facet: {
-        overAllStats: [
-          {
-            $group: {
-              _id: null,
-              toalIncomeAmount: {
-                $sum: {
-                  $cond: [{ $eq: ["$type", "Income"] }, "$amount", 0],
-                },
-              },
-              totalExpense: {
-                $sum: {
-                  $cond: [{ $eq: ["$type", "Expense"] }, "$amount", 0],
-                },
-              },
-            },
-          },
-          {
-            $project: {
-              netValue: {
-                $subtract: ["$toalIncomeAmount", "$totalExpense"],
-              },
-              totalExpense: "$totalExpense",
-              totalIncome: "$toalIncomeAmount",
-            },
-          },
-        ],
-      },
-    },
-  ]);
-
-  const result = calculateAmt[0];
-
-  if (result.overAllStats.length === 0) {
-    return {
-      totalExpense: 0,
-      totalIncome: 0,
-      netValue: 0,
-    };
-  }
-
-  return {
-    totalExpense: result.overAllStats[0].totalExpense,
-    totalIncome: result.overAllStats[0].totalIncome,
-    netValue: result.overAllStats[0].netValue,
-  };
-};
-
-const helpThisMonth = async (users) => {
-  const now = new Date();
-  let sm = new Date(now.getFullYear(), now.getMonth(), 1);
-  let nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-  let calcu = await Transaction.aggregate([
-    {
-      $match: { user: users._id, createdAt: { $gte: sm, $lt: nm } },
-    },
-    {
-      $facet: {
-        overAllStats: [
-          {
-            $group: {
-              _id: null,
-              // here sum does that it adds if only the title is Income or else it will remain 0 //
-              totalIncome: {
-                $sum: {
-                  // here cond takes 3 param. 1st is condition 2nd is if true then what lastly 3rd if false then what //
-                  $cond: [{ $eq: ["$type", "Income"] }, "$amount", 0],
-                },
-              },
-              totalExpense: {
-                $sum: {
-                  $cond: [{ $eq: ["$type", "Expense"] }, "$amount", 0],
-                },
-              },
-              totalTransaction: {
-                $sum: 1,
-              },
-            },
-          },
-          {
-            $project: {
-              netValue: {
-                $subtract: ["$totalIncome", "$totalExpense"],
-              },
-            },
-          },
-        ],
-      },
-    },
-  ]);
-  if (calcu.length === 0) {
-    return "No Transaction For the current Month";
-  }
-  const result = calcu[0];
-
-  return {
-    totalExpense: result.overAllStats[0].totalExpense,
-    totalIncome: result.overAllStats[0].totalIncome,
-    totalTransaction: result.overAllStats[0].totalTransaction,
-    netValue: result.overAllStats[0].netValue,
-  };
-};
-
-// ================= Calculation Main Function ================= //
-const stats = middleware(async (req, res, next) => {
-  const { thisMonth, startDate, endDate, thisYear, page } = req.query;
-
-  let cal;
-  // Current Month
-  if (thisMonth && !startDate && !endDate && !thisYear) {
-    cal = await helpThisMonth(req.user);
-  }
-
-  // Specific Month
-  else if (startDate && !endDate && !thisYear) {
-    cal = await specificMonthCalculator(startDate, req.user);
-  }
-
-  // Date Range
-  else if (startDate && endDate && !thisYear) {
-    data = await rangeFilter(startDate, endDate, req.user);
-  }
-
-  // Specific Year
-  else if (thisYear) {
-    data = await oneYear(thisYear, req.user);
-  } else {
-    return next(new ErrorHandler("Invalid Query Parameters", 400));
-  }
-
-  res.status(200).json({
-    success: true,
-    cal,
-  });
-});
-
 // ================= MAIN FILTER =================
 const mainFilter = middleware(async (req, res, next) => {
   const { thisMonth, startDate, endDate, thisYear, page } = req.query;
@@ -339,7 +324,7 @@ const mainFilter = middleware(async (req, res, next) => {
 
   // Current Month
   if (thisMonth && !startDate && !endDate && !thisYear) {
-    data = await monthFilter(req.user);
+    data = await monthFilter(req.user, page);
   }
 
   // Specific Month
