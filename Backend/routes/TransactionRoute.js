@@ -3,7 +3,6 @@ const {
   deleteTransaction,
   stats,
   updateTransaction,
-  normalView,
   mainFilter,
 } = require("../Controller/TransactionController");
 const express = require("express");

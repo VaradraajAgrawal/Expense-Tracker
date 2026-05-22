@@ -204,17 +204,6 @@ const stats = middleware(async (req, res, next) => {
   });
 });
 
-// ================= ALL TRANSACTION  =================
-const normalView = middleware(async (req, res, next) => {
-  const allTra = await Transcation.find({ user: req.user._id });
-  if (allTra.length === 0) {
-    return next(new ErrorHandler("Transaction Error", 400));
-  }
-  res.status(200).json({
-    success: true,
-    allTra,
-  });
-});
 // ================= Pagination Helper Function =================
 const paginationHelper = async (page, filter) => {
   let limitQauntity = 10;
@@ -234,9 +223,27 @@ const paginationHelper = async (page, filter) => {
     .limit(limitQauntity);
 
   return {
+    totalDocuments,
     maxPage,
     filtered,
     parse,
+  };
+};
+
+// ================= ALL TRANSACTION  =================
+const normalView = async (user, page) => {
+  const allTra = { user: user._id };
+
+  let { maxPage, filtered, parse, totalDocuments } = await paginationHelper(
+    page,
+    allTra,
+  );
+
+  return {
+    maxPage,
+    filtered,
+    parse,
+    totalDocuments,
   };
 };
 
@@ -254,8 +261,11 @@ const monthFilter = async (user, page) => {
     },
   };
 
-  let { maxPage, filtered, parse } = await paginationHelper(page, fil);
-  return filtered;
+  let { maxPage, filtered, parse, totalDocuments } = await paginationHelper(
+    page,
+    fil,
+  );
+  return { maxPage, filtered, parse, totalDocuments };
 };
 
 // ================= SPECIFIC MONTH =================
@@ -283,33 +293,40 @@ const specificMonth = async (month, user, page) => {
     createdAt: { $gte: startMonth, $lt: nextMonth },
   };
 
-  let { maxPage, filtered, parse } = await paginationHelper(page, fil);
-  return { maxPage, filtered, parse };
+  let { maxPage, filtered, parse, totalDocuments } = await paginationHelper(
+    page,
+    fil,
+  );
+  return { maxPage, filtered, parse, totalDocuments };
 };
 
 // ================= SPECIFIC YEAR =================
-const oneYear = async (year, user) => {
-  const startYear = new Date(year, 0, 1);
-
+const oneYear = async (year, user, page) => {
+  const startYear = new Date(Number(year), 0, 1);
   const nextYear = new Date(Number(year) + 1, 0, 1);
 
   if (isNaN(startYear) || isNaN(nextYear)) {
     throw new ErrorHandler("Invalid Year", 400);
   }
 
-  const filtered = await Transaction.find({
+  const fil = {
     user: user._id,
     createdAt: {
       $gte: startYear,
       $lt: nextYear,
     },
-  });
+  };
 
-  return filtered;
+  let { maxPage, filtered, parse, totalDocuments } = await paginationHelper(
+    page,
+    fil,
+  );
+
+  return { maxPage, filtered, parse, totalDocuments };
 };
 
 // ================= CUSTOM DATE RANGE =================
-const rangeFilter = async (startDate, endDate, user) => {
+const rangeFilter = async (startDate, endDate, user, page) => {
   const start = new Date(startDate);
 
   const end = new Date(endDate);
@@ -318,15 +335,20 @@ const rangeFilter = async (startDate, endDate, user) => {
     throw new ErrorHandler("Invalid Date Range", 400);
   }
 
-  const filtered = await Transaction.find({
+  const fil = {
     user: user._id,
     createdAt: {
       $gte: start,
       $lt: end,
     },
-  });
+  };
 
-  return filtered;
+  let { maxPage, filtered, parse, totalDocuments } = await paginationHelper(
+    page,
+    fil,
+  );
+
+  return { maxPage, filtered, parse, totalDocuments };
 };
 
 // ================= MAIN FILTER =================
@@ -342,30 +364,30 @@ const mainFilter = middleware(async (req, res, next) => {
 
   // Specific Month
   else if (startDate && !endDate && !thisYear) {
-    data = await specificMonth(startDate, req.user);
+    data = await specificMonth(startDate, req.user, page);
   }
 
   // Date Range
   else if (startDate && endDate && !thisYear) {
-    data = await rangeFilter(startDate, endDate, req.user);
+    data = await rangeFilter(startDate, endDate, req.user, page);
   }
 
   // Specific Year
   else if (thisYear) {
-    data = await oneYear(thisYear, req.user);
+    data = await oneYear(thisYear, req.user, page);
   } else {
-    return next(new ErrorHandler("Invalid Query Parameters", 400));
+    data = await normalView(req.user, page);
   }
 
   res.status(200).json({
     success: true,
-    count: data.length,
-    data,
+    totalCount: data.totalDocuments,
+    maxPage: data.maxPage,
+    currentPage: data.parse,
   });
 });
 
 module.exports = {
-  normalView,
   createTransaction,
   deleteTransaction,
   stats,
