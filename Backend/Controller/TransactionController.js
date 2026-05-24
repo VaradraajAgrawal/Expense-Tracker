@@ -4,6 +4,7 @@ const Transcation = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
 const { paginationHelper, facetFunction } = require("../utils/HelperFunction");
 const filterBoth = require("../utils/Experiment");
+
 // ================= CRUD OPERATIONS ================= //
 const createTransaction = middleware(async (req, res, next) => {
   const { type, amount, category } = req.body;
@@ -101,13 +102,29 @@ const stats = middleware(async (req, res, next) => {
 });
 
 const mainFilter = middleware(async (req, res, next) => {
-  const filterData = filterBoth(req.query);
+  // const filterData = filterBoth(req.query);
+  // if (filterData === 0) {
+  //   fil = {
+  //     user: req.user._id,
+  //   };
+  // } else {
+  //   fil = {
+  //     user: req.user._id,
+  //     createdAt: { $gte: filterData.start, $lt: filterData.end },
+  //   };
+  // }
 
-  const fil = {
+  const filterData = filterBoth(req.query);
+  let fil = {
     user: req.user._id,
-    createdAt: { $gte: filterData.start, $lt: filterData.end },
   };
 
+  if (filterData) {
+    fil.createdAt = {
+      $gte: filterData.start,
+      $lt: filterData.end,
+    };
+  }
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     req.query.page,
     fil,

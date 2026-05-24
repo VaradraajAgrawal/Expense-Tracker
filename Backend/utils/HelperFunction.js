@@ -1,18 +1,27 @@
 let Transaction = require("../models/Transaction");
+const ErrorHandler = require("../utils/prac");
 
 const paginationHelper = async (page, filter) => {
+  let filtered;
+  let totalDocuments;
   let limitQauntity = 10;
   let parse = parseInt(page) || 1;
 
-  let totalDocuments = await Transaction.countDocuments(filter);
-  let maxPage = Math.ceil(totalDocuments / limitQauntity, 1);
+  totalDocuments = await Transaction.countDocuments(filter);
+
+  if (totalDocuments < 0) {
+    throw new ErrorHandler("Transaction Not Found!!", 400);
+  }
+
+  let maxPage = Math.max(Math.ceil(totalDocuments / limitQauntity), 1);
 
   if (parse > maxPage || parse <= 0 || isNaN(parse)) {
     parse = 1;
   }
 
   let skip = (parse - 1) * limitQauntity;
-  let filtered = await Transaction.find(filter)
+
+  filtered = await Transaction.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limitQauntity);
@@ -26,6 +35,7 @@ const paginationHelper = async (page, filter) => {
 };
 
 const facetFunction = async (filter) => {
+  // if(!filter)
   const calculateAmt = await Transaction.aggregate([
     {
       $match: { ...filter },

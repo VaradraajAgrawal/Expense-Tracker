@@ -72,6 +72,8 @@ const filterBoth = (query) => {
   // Specific Year
   else if (thisYear) {
     cal = oneYear(thisYear);
+  } else if (!thisYear && !startDate && !thisMonth && !endDate) {
+    cal = null;
   } else {
     throw new ErrorHandler("Invalid Query Parameters", 400);
   }
