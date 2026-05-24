@@ -25,10 +25,10 @@ const paginationHelper = async (page, filter) => {
   };
 };
 
-const facetFunction = async (sm, nm, user) => {
+const facetFunction = async (filter) => {
   const calculateAmt = await Transaction.aggregate([
     {
-      $match: { user: user._id, createdAt: { $gte: sm, $lt: nm } },
+      $match: { ...filter },
     },
     {
       $facet: {

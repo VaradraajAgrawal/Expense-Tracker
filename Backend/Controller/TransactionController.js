@@ -2,19 +2,8 @@ const jwt = require("jsonwebtoken");
 const middleware = require("../middleware/errorFun");
 const Transcation = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
-const {
-  rangeFilter,
-  oneYear,
-  specificMonth,
-  normalView,
-  monthFilter,
-} = require("../utils/DateFeature");
-const {
-  helpThisMonth,
-  specificMonthCalculator,
-  yearAndMonthCalculator,
-  oneYearCalc,
-} = require("../utils/StatsFilter");
+const { paginationHelper, facetFunction } = require("../utils/HelperFunction");
+const filterBoth = require("../utils/Experiment");
 // ================= CRUD OPERATIONS ================= //
 const createTransaction = middleware(async (req, res, next) => {
   const { type, amount, category } = req.body;
@@ -92,69 +81,44 @@ const updateTransaction = middleware(async (req, res, next) => {
 
 // ================= Calculation Main Function ================= //
 const stats = middleware(async (req, res, next) => {
-  const { thisMonth, startDate, endDate, thisYear, page } = req.query;
+  const filterData = filterBoth(req.query);
 
-  let cal;
-  // Current Month
-  if (thisMonth && !startDate && !endDate && !thisYear) {
-    cal = await helpThisMonth(req.user);
-  }
+  const fil = {
+    user: req.user._id,
+    createdAt: { $gte: filterData.start, $lt: filterData.end },
+  };
 
-  // Specific Month
-  else if (startDate && !endDate && !thisYear) {
-    cal = await specificMonthCalculator(startDate, req.user);
-  }
-
-  // Date Range
-  else if (startDate && endDate && !thisYear) {
-    cal = await yearAndMonthCalculator(startDate, endDate, req.user);
-  }
-
-  // Specific Year
-  else if (thisYear) {
-    cal = await oneYearCalc(thisYear, req.user);
-  } else {
-    return next(new ErrorHandler("Invalid Query Parameters", 400));
-  }
+  let { totalTransaction, totalExpense, totalIncome, netValue } =
+    await facetFunction(fil);
 
   res.status(200).json({
     success: true,
-    cal,
+    totalTransaction,
+    totalExpense,
+    totalIncome,
+    netValue,
   });
 });
 
 const mainFilter = middleware(async (req, res, next) => {
-  const { thisMonth, startDate, endDate, thisYear, page } = req.query;
+  const filterData = filterBoth(req.query);
 
-  let data;
+  const fil = {
+    user: req.user._id,
+    createdAt: { $gte: filterData.start, $lt: filterData.end },
+  };
 
-  // Current Month
-  if (thisMonth && !startDate && !endDate && !thisYear) {
-    data = await monthFilter(req.user, page);
-  }
-
-  // Specific Month
-  else if (startDate && !endDate && !thisYear) {
-    data = await specificMonth(startDate, req.user, page);
-  }
-
-  // Date Range
-  else if (startDate && endDate && !thisYear) {
-    data = await rangeFilter(startDate, endDate, req.user, page);
-  }
-
-  // Specific Year
-  else if (thisYear) {
-    data = await oneYear(thisYear, req.user, page);
-  } else {
-    data = await normalView(req.user, page);
-  }
+  let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
+    req.query.page,
+    fil,
+  );
 
   res.status(200).json({
     success: true,
-    totalCount: data.totalDocuments,
-    maxPage: data.maxPage,
-    currentPage: data.parse,
+    totalDocuments,
+    maxPage,
+    filtered,
+    parse,
   });
 });
 
