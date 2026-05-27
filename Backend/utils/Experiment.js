@@ -51,7 +51,7 @@ const customDate = (startDate, endDate) => {
 
 // ================= Calculation Main Function ================= //
 const filterBoth = (query) => {
-  const { thisMonth, startDate, endDate, thisYear, page } = query;
+  const { thisMonth, startDate, endDate, thisYear } = query;
 
   let cal;
   // Current Month

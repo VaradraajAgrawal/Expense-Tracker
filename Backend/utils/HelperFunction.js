@@ -9,10 +9,7 @@ const paginationHelper = async (page, filter) => {
 
   totalDocuments = await Transaction.countDocuments(filter);
 
-  if (totalDocuments < 0) {
-    throw new ErrorHandler("Transaction Not Found!!", 400);
-  }
-
+  // Math.max here takes 1 and if Math.ceil gives 0 it makes it 1 and  if the number is higher than 1 it automatically becomes maxPage //
   let maxPage = Math.max(Math.ceil(totalDocuments / limitQauntity), 1);
 
   if (parse > maxPage || parse <= 0 || isNaN(parse)) {
@@ -35,7 +32,9 @@ const paginationHelper = async (page, filter) => {
 };
 
 const facetFunction = async (filter) => {
-  // if(!filter)
+  if (!filter) {
+    throw new ErrorHandler("No filter Provided", 400);
+  }
   const calculateAmt = await Transaction.aggregate([
     {
       $match: { ...filter },

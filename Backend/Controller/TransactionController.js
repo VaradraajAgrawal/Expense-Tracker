@@ -83,11 +83,17 @@ const updateTransaction = middleware(async (req, res, next) => {
 // ================= Calculation Main Function ================= //
 const stats = middleware(async (req, res, next) => {
   const filterData = filterBoth(req.query);
+  let fil;
 
-  const fil = {
+  fil = {
     user: req.user._id,
-    createdAt: { $gte: filterData.start, $lt: filterData.end },
   };
+  if (filterData) {
+    fil.createdAt = {
+      $gte: filterData.start,
+      $lt: filterData.end,
+    };
+  }
 
   let { totalTransaction, totalExpense, totalIncome, netValue } =
     await facetFunction(fil);
@@ -125,6 +131,23 @@ const mainFilter = middleware(async (req, res, next) => {
       $lt: filterData.end,
     };
   }
+
+  if (req.query.category) {
+    fil.category = req.query.category;
+  }
+
+  if (req.query.min || req.query.max) {
+    if (req.query.min && req.query.max) {
+      fil.amount = { $gte: Number(req.query.min), $lt: Number(req.query.max) };
+    }
+    if (req.query.min) {
+      fil.amount = { $gte: Number(req.query.min) };
+    }
+    if (req.query.max) {
+      fil.amount = { $lte: Number(req.query.max) };
+    }
+  }
+
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     req.query.page,
     fil,
