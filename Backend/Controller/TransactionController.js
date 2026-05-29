@@ -3,7 +3,7 @@ const middleware = require("../middleware/errorFun");
 const Transcation = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
 const { paginationHelper, facetFunction } = require("../utils/HelperFunction");
-const filterBoth = require("../utils/Experiment");
+const transactionFilter = require("../utils/transactionFilter");
 
 // ================= CRUD OPERATIONS ================= //
 const createTransaction = middleware(async (req, res, next) => {
@@ -82,19 +82,8 @@ const updateTransaction = middleware(async (req, res, next) => {
 
 // ================= Calculation Main Function ================= //
 const stats = middleware(async (req, res, next) => {
-  const filterData = filterBoth(req.query);
   let fil;
-
-  fil = {
-    user: req.user._id,
-  };
-  if (filterData) {
-    fil.createdAt = {
-      $gte: filterData.start,
-      $lt: filterData.end,
-    };
-  }
-
+  fil = transactionFilter(req.query, req.user);
   let { totalTransaction, totalExpense, totalIncome, netValue } =
     await facetFunction(fil);
 
@@ -108,45 +97,7 @@ const stats = middleware(async (req, res, next) => {
 });
 
 const mainFilter = middleware(async (req, res, next) => {
-  // const filterData = filterBoth(req.query);
-  // if (filterData === 0) {
-  //   fil = {
-  //     user: req.user._id,
-  //   };
-  // } else {
-  //   fil = {
-  //     user: req.user._id,
-  //     createdAt: { $gte: filterData.start, $lt: filterData.end },
-  //   };
-  // }
-
-  const filterData = filterBoth(req.query);
-  let fil = {
-    user: req.user._id,
-  };
-
-  if (filterData) {
-    fil.createdAt = {
-      $gte: filterData.start,
-      $lt: filterData.end,
-    };
-  }
-
-  if (req.query.category) {
-    fil.category = req.query.category;
-  }
-
-  if (req.query.min || req.query.max) {
-    if (req.query.min && req.query.max) {
-      fil.amount = { $gte: Number(req.query.min), $lt: Number(req.query.max) };
-    }
-    if (req.query.min) {
-      fil.amount = { $gte: Number(req.query.min) };
-    }
-    if (req.query.max) {
-      fil.amount = { $lte: Number(req.query.max) };
-    }
-  }
+  let fil = transactionFilter(req.query, req.user);
 
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     req.query.page,
