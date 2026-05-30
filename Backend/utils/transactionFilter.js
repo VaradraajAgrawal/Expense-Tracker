@@ -27,6 +27,9 @@ const transactionFilter = (query, user) => {
       $lt: filterData.end,
     };
   }
+  if (query.type) {
+    fil.type = query.type;
+  }
 
   if (query.category) {
     fil.category = query.category;

@@ -96,12 +96,13 @@ const stats = middleware(async (req, res, next) => {
   });
 });
 
+// ================= Pagination Main Function ================= //
 const mainFilter = middleware(async (req, res, next) => {
   let fil = transactionFilter(req.query, req.user);
 
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
-    req.query.page,
     fil,
+    req.query,
   );
 
   res.status(200).json({

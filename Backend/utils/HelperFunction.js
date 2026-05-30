@@ -1,12 +1,12 @@
 let Transaction = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
+const transactionSort = require("../utils/transactionSort");
 
-const paginationHelper = async (page, filter) => {
+const paginationHelper = async (filter, query) => {
   let filtered;
   let totalDocuments;
   let limitQauntity = 10;
-  let parse = parseInt(page) || 1;
-
+  let parse = parseInt(query.page) || 1;
   totalDocuments = await Transaction.countDocuments(filter);
 
   // Math.max here takes 1 and if Math.ceil gives 0 it makes it 1 and  if the number is higher than 1 it automatically becomes maxPage //
@@ -15,11 +15,13 @@ const paginationHelper = async (page, filter) => {
   if (parse > maxPage || parse <= 0 || isNaN(parse)) {
     parse = 1;
   }
+  let sorted = transactionSort(query);
+  console.log("Sorted ", sorted);
 
   let skip = (parse - 1) * limitQauntity;
 
   filtered = await Transaction.find(filter)
-    .sort({ createdAt: -1 })
+    .sort({ ...sorted })
     .skip(skip)
     .limit(limitQauntity);
 
