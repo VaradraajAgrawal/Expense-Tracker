@@ -27,7 +27,7 @@ const transactionFilter = (query, user) => {
       $lt: filterData.end,
     };
   }
-  if (query.type) {
+  if (query.type === "Expense" || query.type === "Income") {
     fil.type = query.type;
   }
 

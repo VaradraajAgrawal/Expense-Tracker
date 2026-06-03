@@ -102,7 +102,8 @@ const mainFilter = middleware(async (req, res, next) => {
 
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     fil,
-    req.query,
+    req.page,
+    req.sort,
   );
 
   res.status(200).json({

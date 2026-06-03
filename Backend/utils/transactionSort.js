@@ -1,25 +1,25 @@
-const transactionSort = (query) => {
-  let sort = {
+const transactionSort = (sort) => {
+  let sorted = {
     createdAt: -1,
   };
 
-  if (query.sort === "highest") {
-    sort = {
+  if (sort === "highest") {
+    sorted = {
       amount: -1,
     };
   }
-  if (query.sort === "lowest") {
-    sort = {
+  if (sort === "lowest") {
+    sorted = {
       amount: 1,
     };
   }
-  if (query.sort === "oldest") {
-    sort = {
+  if (sort === "oldest") {
+    sorted = {
       createdAt: 1,
     };
   }
 
-  return sort;
+  return sorted;
 };
 
 module.exports = transactionSort;
