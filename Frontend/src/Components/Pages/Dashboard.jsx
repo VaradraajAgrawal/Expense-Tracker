@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SummaryCard from "../Dashboard/SummaryCard";
 import TransactionList from "../Dashboard/TransactionList";
-import ShradhanjaliCard from "./Prac";
+import Resume from "./Prac";
 
 const Dashboard = () => {
   // These would eventually come from your GlobalContext or Backend
@@ -83,6 +83,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <div>{/* <Resume /> */}</div>
     </div>
   );
 };

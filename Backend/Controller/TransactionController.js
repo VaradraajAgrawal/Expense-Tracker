@@ -3,6 +3,7 @@ const middleware = require("../middleware/errorFun");
 const Transcation = require("../models/Transaction");
 const ErrorHandler = require("../utils/prac");
 const { paginationHelper, facetFunction } = require("../utils/HelperFunction");
+const transactionValidation = require("../utils/transactionValidation");
 const transactionFilter = require("../utils/transactionFilter");
 
 // ================= CRUD OPERATIONS ================= //
@@ -98,7 +99,9 @@ const stats = middleware(async (req, res, next) => {
 
 // ================= Pagination Main Function ================= //
 const mainFilter = middleware(async (req, res, next) => {
+  let validated = transactionValidation(req.query);
   let fil = transactionFilter(req.query, req.user);
+  console.log(validated);
 
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     fil,

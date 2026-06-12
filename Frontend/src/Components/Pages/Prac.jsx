@@ -1,213 +1,304 @@
 import React from "react";
 
-export default function ShradhanjaliCard() {
+const Resume = () => {
   return (
-    <div className="flex justify-center items-center min-h-screen p-4 bg-gray-200 font-sans antialiased">
-      {/* Card Wrapper (Optimized for Portrait Share/Print) */}
-      <div
-        className="w-[750px] min-h-[1050px] p-8 shadow-2xl relative text-[#4a1525]"
-        style={{
-          backgroundColor: "#fdfbf7",
-          backgroundImage: "radial-gradient(#f4efe6 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-          border: "4px double #851c1c",
-        }}
-      >
-        {/* Top Decorative Accent */}
-        <div className="text-center text-xl text-[#851c1c] tracking-widest mb-2">
-          ❖ ═══════ ❖ ═══════ ❖
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold tracking-wide text-[#851c1c] font-serif">
-            ।। श्रीमननारायण ।।
+    <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0">
+      <div className="max-w-4xl mx-auto bg-white p-8 sm:p-10 shadow-md rounded-sm print:shadow-none print:p-0">
+        {/* HEADER */}
+        <header className="text-center border-b-2 border-blue-600 pb-5 mb-6">
+          <h1 className="text-3xl font-bold tracking-wide text-slate-900 uppercase mb-1">
+            Varadraaj Agrawal
           </h1>
-        </div>
-
-        {/* Main Body Grid (Photo Left, Text Right) */}
-        <div className="grid grid-cols-12 gap-6 items-center mb-8">
-          {/* Left Side: Photo Frame Placeholder */}
-          <div className="col-span-5 flex flex-col items-center justify-center">
-            <div className="w-48 h-64 border-4 border-[#851c1c] rounded-t-full rounded-b-lg overflow-hidden shadow-md bg-amber-50 flex items-center justify-center relative p-1">
-              {/* Replace src with the final path to the high-res profile picture */}
-              <img
-                src="https://via.placeholder.com/200x300?text=Insert+Photo+Here"
-                alt="Late Shri Govind Prasad Agrawal"
-                className="w-full h-full object-cover rounded-t-full rounded-b-sm"
-              />
-            </div>
-            <span className="text-xs text-gray-400 mt-2 italic">
-              [ High-Res Photo Path ]
+          <div className="text-md font-semibold tracking-wider text-blue-600 uppercase mb-3">
+            Full-Stack Developer
+          </div>
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+            <span>📍 Raipur, Chhattisgarh</span>
+            <span>📱 +91 7999469783</span>
+            <span>
+              ✉️{" "}
+              <a
+                href="mailto:varadagrawal52@gmail.com"
+                className="text-blue-600 hover:underline"
+              >
+                varadagrawal52@gmail.com
+              </a>
+            </span>
+            <span>
+              🔗{" "}
+              <a
+                href="https://github.com/SenseiVa"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                GitHub Profile
+              </a>
             </span>
           </div>
+        </header>
 
-          {/* Right Side: Obituary Announcement */}
-          <div className="col-span-7 text-center pr-4">
-            <p className="text-lg font-medium text-gray-800 mb-2">
-              अत्यंत दुःख के साथ सूचित कर रहे हैं कि हमारे पूज्य पिताजी
-            </p>
-            <h2 className="text-4xl font-bold text-[#851c1c] my-3 drop-shadow-sm font-serif">
-              श्री गोविंद प्रसाद अग्रवाल
-            </h2>
-            <p className="text-xl font-semibold text-gray-700 mb-4">
-              (करगी रोड वाले)
-            </p>
-            <div className="w-24 h-[1px] bg-[#851c1c] mx-auto my-3"></div>
-            <p className="text-lg text-gray-800 leading-relaxed">
-              का स्वर्गवास दिनांक <br />
-              <span className="font-bold text-xl text-[#851c1c]">
-                25 मई 2026, दिन सोमवार
-              </span>{" "}
-              <br />
-              को हो गया है।
-            </p>
-          </div>
-        </div>
-
-        {/* Event Details Box (Terahvin / Ganga Prasadi) */}
-        <div className="border-2 border-[#851c1c]/44 rounded-xl p-6 bg-[#fffdfa] shadow-sm mb-6 relative">
-          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#fdfbf7] px-4">
-            <h3 className="text-2xl font-bold text-[#851c1c] font-serif">
-              बारहवां एवं गंगाप्रसादि
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 mt-2 divide-x divide-[#851c1c]/20">
-            {/* Left Column: Dates & Timing */}
-            <div className="space-y-3 pr-2">
-              <h4 className="text-xl font-bold border-b border-[#851c1c]/10 pb-1 text-[#851c1c]">
-                बारहवां
-              </h4>
-              <p className="text-md">
-                <span class="font-semibold">दिनांक:</span> 06 जून 2026, दिन
-                शनिवार
-              </p>
-              <div className="text-md space-y-1">
-                <p className="font-semibold text-gray-800">समय:</p>
-                <div className="bg-amber-50 p-1.5 rounded border border-amber-200 text-sm text-center">
-                  <span className="font-bold">01:00 बजे से 03:00 बजे तक</span>
-                  <br />
-                  (गंगा प्रसादी)
-                </div>
-                <p className="text-sm font-semibold mt-1">
-                  सायं 04:00 बजे – पगड़ी रस्म
-                </p>
-              </div>
-            </div>
-
-            {/* Right Column: Location/Venue */}
-            <div className="space-y-3 pl-6">
-              <h4 className="text-xl font-bold border-b border-[#851c1c]/10 pb-1 text-[#851c1c] flex items-center gap-1">
-                📍 कार्यक्रम स्थल
-              </h4>
-              <p className="text-sm text-gray-600 font-semibold">
-                बारहवां एवं गंगा प्रसादी कार्यक्रम स्थल:
-              </p>
-              <p className="text-lg font-bold text-gray-900 leading-snug">
-                श्री रामनाथ भीमसेन भवन,
-              </p>
-              <p className="text-md text-gray-700">समता कॉलोनी, रायपुर</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Daily Shok Baithak & Residence Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {/* Shok Baithak */}
-          <div className="border border-[#851c1c]/30 rounded-lg p-4 bg-[#fffdfa]">
-            <h4 className="text-lg font-bold text-[#851c1c] border-b border-[#851c1c]/10 pb-1 mb-2 text-center">
-              दैनिक शोक बैठक
-            </h4>
-            <div className="text-sm space-y-1.5 text-center">
-              <p>
-                <span className="font-semibold">प्रतिदिन:</span> सायं 05:00 बजे
-                से 07:00 बजे तक
-              </p>
-              <p className="bg-amber-50/60 py-1 rounded font-medium text-[#851c1c]">
-                गरुड़ पुराण – सायं 04:30 बजे
-              </p>
-            </div>
-          </div>
-
-          {/* Residence */}
-          <div className="border border-[#851c1c]/30 rounded-lg p-4 bg-[#fffdfa]">
-            <h4 className="text-lg font-bold text-[#851c1c] border-b border-[#851c1c]/10 pb-1 mb-2 text-center">
-              निवास
-            </h4>
-            <p className="text-sm text-center font-medium text-gray-800 leading-relaxed">
-              गोकुल निवास, राधा कृष्ण मंदिर के सामने,
-              <br />
-              समता कॉलोनी, रायपुर
-            </p>
-          </div>
-        </div>
-
-        {/* Separation Line */}
-        <div className="w-full h-[1px] bg-[#851c1c]/30 my-4" />
-
-        {/* Family Acknowledgments Footer */}
-        <div className="grid grid-cols-3 gap-4 text-center text-sm mb-6 bg-amber-50/40 p-4 rounded-xl border border-amber-100">
-          {/* Column 1 */}
-          <div className="space-y-1 border-r border-[#851c1c]/10">
-            <h5 className="font-bold text-md text-white mb-1 bg-[#851c1c] py-0.5 rounded">
-              शोक संतप्त
-            </h5>
-            <p className="font-semibold text-gray-900">
-              आनंद अग्रवाल{" "}
-              <span className="text-xs text-gray-500">(पुत्र)</span>
-            </p>
-            <p className="font-semibold text-gray-900">
-              प्रकाश अग्रवाल <span class="text-xs text-gray-500">(पुत्र)</span>
-            </p>
-            <p className="text-gray-700">
-              विशेष, अवधेश{" "}
-              <span className="text-xs text-gray-500">(पौत्र)</span>
-            </p>
-            <p className="text-gray-700">
-              वरदराज, वंशराज{" "}
-              <span className="text-xs text-gray-500">(पौत्र)</span>
-            </p>
-          </div>
-
-          {/* Column 2 */}
-          <div className="space-y-1 border-r border-[#851c1c]/10 flex flex-col justify-between">
-            <div>
-              <h5 className="font-bold text-md text-white mb-1 bg-[#851c1c] py-0.5 rounded">
-                शोकाकुल
-              </h5>
-              <p className="font-semibold text-gray-900 mt-2">
-                मुरारी लाल अग्रवाल
-              </p>
-              <p className="text-gray-700">एवं समस्त परिवार</p>
-            </div>
-          </div>
-
-          {/* Column 3 */}
-          <div>
-            <h5 className="font-bold text-md text-white mb-1 bg-[#851c1c] py-0.5 rounded">
-              समस्त संबंधी
-            </h5>
-            <p className="font-bold text-gray-900">तुलस्यान परिवार</p>
-            <p className="text-xs font-semibold text-gray-600">
-              (करगी रोड वाले)
-            </p>
-            <p className="text-gray-700 mt-1">एवं समस्त परिजन</p>
-          </div>
-        </div>
-
-        {/* Contact Numbers Contact Button */}
-        <div className="text-center mt-6">
-          <p className="inline-block bg-[#851c1c] text-white px-6 py-1.5 rounded-full text-md font-semibold tracking-wide shadow-sm">
-            📞 संपर्क सूत्र: 9425502242, 9425502642
+        {/* SUMMARY */}
+        <section className="mb-6 print:break-inside-avoid">
+          <h2 className="text-base font-bold text-slate-900 uppercase border-b border-gray-200 pb-1 mb-3 tracking-wide">
+            Summary
+          </h2>
+          <p className="text-sm text-gray-700 text-justify leading-relaxed">
+            Passionate and detail-oriented Full-Stack Developer with a solid
+            foundation in business administration (BBA) and an extensive
+            technical toolkit across frontend and backend technologies. Adept at
+            building fully responsive user interfaces using React.js and
+            Next.js, alongside developing scalable backend services with
+            Node.js, Express, and C#. Proven ability to architect clean database
+            schemas, implement efficient indexing patterns, and write robust API
+            validation systems to deliver highly optimized web applications.
           </p>
-        </div>
+        </section>
 
-        {/* Bottom Decorative Accent */}
-        <div className="text-center text-xl text-[#851c1c] tracking-widest mt-6">
-          ❖ ═══════ ❖ ═══════ ❖
-        </div>
+        {/* TECHNICAL SKILLS */}
+        <section className="mb-6 print:break-inside-avoid">
+          <h2 className="text-base font-bold text-slate-900 uppercase border-b border-gray-200 pb-1 mb-3 tracking-wide">
+            Technical Skills
+          </h2>
+          <div className="space-y-2 text-sm">
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-bold text-slate-800 min-w-[180px]">
+                Languages:
+              </span>
+              <span className="text-gray-700">
+                JavaScript (ES6+), C#, HTML5, CSS3, SQL
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-bold text-slate-800 min-w-[180px]">
+                Frontend & Libraries:
+              </span>
+              <span className="text-gray-700">
+                React.js, Next.js, Tailwind CSS, Redux Toolkit
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-bold text-slate-800 min-w-[180px]">
+                Backend & Runtimes:
+              </span>
+              <span className="text-gray-700">
+                Node.js, Express.js, ASP.NET Core
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-bold text-slate-800 min-w-[180px]">
+                Databases & ORMs:
+              </span>
+              <span className="text-gray-700">
+                MongoDB, Mongoose, SQL Server
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-bold text-slate-800 min-w-[180px]">
+                Tools & Workflows:
+              </span>
+              <span className="text-gray-700">
+                Git, GitHub, RESTful APIs, JWT Auth, Postman, Vercel, Netlify
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* TECHNICAL PROJECTS */}
+        <section className="mb-6 print:break-inside-avoid">
+          <h2 className="text-base font-bold text-slate-900 uppercase border-b border-gray-200 pb-1 mb-3 tracking-wide">
+            Technical Projects
+          </h2>
+
+          {/* Project 1 */}
+          <div className="mb-5">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+              <h3 className="text-sm font-bold text-gray-800">
+                Financial Transaction API & Validation Engine (Backend)
+              </h3>
+              <span className="text-xs font-medium text-blue-600 italic">
+                Node.js, Express.js, MongoDB, Mongoose
+              </span>
+            </div>
+            <ul className="list-disc ml-5 text-xs text-gray-700 space-y-1 text-justify">
+              <li>
+                Designed and implemented a robust RESTful backend module for
+                transaction filtering, pagination, and sorting logic.
+              </li>
+              <li>
+                Engineered custom schema architectures featuring single-field
+                and advanced compound indexes (<code>user_1_createdAt_-1</code>)
+                to optimize query execution plans, effectively replacing costly
+                in-memory sort stages with high-performance index scans (
+                <code>IXSCAN</code>).
+              </li>
+              <li>
+                Developed a bulletproof query validation middleware handling
+                complex date parsing strategies and self-correcting mathematical
+                boundaries for minimum/maximum numeric ranges.
+              </li>
+            </ul>
+          </div>
+
+          {/* Project 2 */}
+          <div className="mb-5">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+              <h3 className="text-sm font-bold text-gray-800">
+                AI Chat Interface (Frontend)
+              </h3>
+              <span className="text-xs font-medium text-blue-600 italic">
+                Next.js, JavaScript, Tailwind CSS
+              </span>
+            </div>
+            <ul className="list-disc ml-5 text-xs text-gray-700 space-y-1 text-justify">
+              <li>
+                Built a sleek, single-page conversational UI highlighting modern
+                UI/UX design components and responsive flexboxes.
+              </li>
+              <li>
+                Optimized assets and streaming layouts for seamless rendering
+                speeds across diverse mobile and desktop viewports.
+              </li>
+            </ul>
+            <div className="text-xs font-medium mt-1 ml-5">
+              <span>
+                🔗 Live Link:{" "}
+                <a
+                  href="https://66702596ee25650091ba56a7--fabulous-custard-4b52dc.netlify.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  fabulous-custard-4b52dc.netlify.app
+                </a>
+              </span>
+            </div>
+          </div>
+
+          {/* Project 3 */}
+          <div className="mb-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+              <h3 className="text-sm font-bold text-gray-800">
+                Yoga Wellness Platform (Frontend)
+              </h3>
+              <span className="text-xs font-medium text-blue-600 italic">
+                Next.js, React.js, Tailwind CSS, Git
+              </span>
+            </div>
+            <ul className="list-disc ml-5 text-xs text-gray-700 space-y-1 text-justify">
+              <li>
+                Designed and deployed a fully responsive multi-page presentation
+                website utilizing Next.js's component-driven architecture.
+              </li>
+              <li>
+                Managed clean system state and semantic structures to minimize
+                component re-renders while ensuring structural fluid styling via
+                Tailwind utility classes.
+              </li>
+            </ul>
+            <div className="text-xs font-medium mt-1 ml-5">
+              <span>
+                🔗 Code Link:{" "}
+                <a
+                  href="https://github.com/SenseiVa/Yoga-Wellness-.git"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  github.com/SenseiVa/Yoga-Wellness-
+                </a>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* EXPERIENCE */}
+        <section className="mb-6 print:break-inside-avoid">
+          <h2 className="text-base font-bold text-slate-900 uppercase border-b border-gray-200 pb-1 mb-3 tracking-wide">
+            Professional Experience
+          </h2>
+          <div>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+              <h3 className="text-sm font-bold text-gray-800">
+                Edzu Edtech —{" "}
+                <span className="font-normal italic text-gray-600">
+                  Investment Analysis Intern
+                </span>
+              </h3>
+              <span className="text-xs font-medium text-gray-500">
+                June 2023 – July 2023
+              </span>
+            </div>
+            <ul className="list-disc ml-5 text-xs text-gray-700 space-y-1 text-justify">
+              <li>
+                Assisted senior analysts in evaluating investment projects,
+                conducting cross-functional market research, and modeling
+                financial data.
+              </li>
+              <li>
+                Acquired experience managing and optimizing mock investment
+                portfolios, sharpening quantitative problem-solving skills that
+                map directly to application business logic.
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* EDUCATION */}
+        <section className="mb-6 print:break-inside-avoid">
+          <h2 className="text-base font-bold text-slate-900 uppercase border-b border-gray-200 pb-1 mb-3 tracking-wide">
+            Education
+          </h2>
+          <div className="space-y-3">
+            <div>
+              <div class="flex justify-between items-baseline">
+                <h3 className="text-sm font-bold text-gray-800">
+                  Bachelor of Business Administration (BBA)
+                </h3>
+                <span className="text-xs font-medium text-gray-500">
+                  Graduation Year: 2024
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">Raipur, India</div>
+            </div>
+            <div>
+              <div class="flex justify-between items-baseline">
+                <h3 className="text-sm font-bold text-gray-800">
+                  Higher Secondary Education (Commerce) —{" "}
+                  <span className="font-normal text-gray-600">
+                    Delhi Public School
+                  </span>
+                </h3>
+                <span className="text-xs font-medium text-gray-500">
+                  Graduation Year: 2021
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">Raipur, India</div>
+            </div>
+          </div>
+        </section>
+
+        {/* EXTRA-CURRICULAR */}
+        <section className="print:break-inside-avoid">
+          <h2 className="text-base font-bold text-slate-900 uppercase border-b border-gray-200 pb-1 mb-3 tracking-wide">
+            Extracurricular Achievement & Leadership
+          </h2>
+          <ul className="list-disc ml-5 text-xs text-gray-700 space-y-1">
+            <li>
+              <strong>National Football Tournament:</strong> Represented state
+              and school at the national competitive level.
+            </li>
+            <li>
+              <strong>All India Inter-University Football Tournament:</strong>{" "}
+              Selected to compete in rigorous inter-university athletic
+              circuits, demonstrating high teamwork, communication, and
+              discipline under pressure.
+            </li>
+          </ul>
+        </section>
       </div>
     </div>
   );
-}
+};
+
+export default Resume;

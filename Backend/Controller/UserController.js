@@ -10,7 +10,7 @@ const sendToken = async (statusCode, user, res, transaction) => {
   const access = user.accessToken();
   const refresh = user.refreshToken();
 
-  // findByIdAndUpdate skips pre("save"), so password won't be re-hashed
+  // findByIdAndUpdate skips pre("save"), so password won't be re-hashed and is not required here to be hashed again //
   const updatedUser = await User.findByIdAndUpdate(
     user._id,
     {
