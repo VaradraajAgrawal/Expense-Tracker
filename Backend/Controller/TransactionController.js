@@ -84,7 +84,8 @@ const updateTransaction = middleware(async (req, res, next) => {
 // ================= Calculation Main Function ================= //
 const stats = middleware(async (req, res, next) => {
   let fil;
-  fil = transactionFilter(req.query, req.user);
+  const validated = transactionValidation(req.query);
+  fil = transactionFilter(validated, req.user);
   let { totalTransaction, totalExpense, totalIncome, netValue } =
     await facetFunction(fil);
 
@@ -100,8 +101,7 @@ const stats = middleware(async (req, res, next) => {
 // ================= Pagination Main Function ================= //
 const mainFilter = middleware(async (req, res, next) => {
   let validated = transactionValidation(req.query);
-  let fil = transactionFilter(req.query, req.user);
-  console.log(validated);
+  let fil = transactionFilter(validated, req.user);
 
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     fil,

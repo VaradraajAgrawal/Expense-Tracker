@@ -10,10 +10,6 @@ const oneMonth = () => {
 
 const specificMonth = (month) => {
   const parsedDate = new Date(month);
-
-  if (isNaN(parsedDate)) {
-    throw new ErrorHandler("Invalid Month", 400);
-  }
   const start = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
   const end = new Date(parsedDate.getFullYear(), parsedDate.getMonth() + 1, 1);
 
@@ -27,9 +23,6 @@ const oneYear = (year) => {
   const start = new Date(Number(year), 0, 1);
   const end = new Date(Number(year) + 1, 0, 1);
 
-  if (isNaN(start) || isNaN(end)) {
-    throw new ErrorHandler("Invalid Year", 400);
-  }
   return {
     start,
     end,
@@ -40,9 +33,6 @@ const customDate = (startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  if (isNaN(start) || isNaN(end)) {
-    throw new ErrorHandler("Invalid Date Range", 400);
-  }
   return {
     start,
     end,

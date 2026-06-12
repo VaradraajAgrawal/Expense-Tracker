@@ -1,18 +1,6 @@
 const filterBoth = require("./Experiment");
 
 const transactionFilter = (query, user) => {
-  // const filterData = filterBoth(req.query);
-  // if (filterData === 0) {
-  //   fil = {
-  //     user: req.user._id,
-  //   };
-  // } else {
-  //   fil = {
-  //     user: req.user._id,
-  //     createdAt: { $gte: filterData.start, $lt: filterData.end },
-  //   };
-  // }
-
   const filterData = filterBoth(query);
 
   let fil;
@@ -27,7 +15,6 @@ const transactionFilter = (query, user) => {
       $lt: filterData.end,
     };
   }
-
   if (query.type === "Expense" || query.type === "Income") {
     fil.type = query.type;
   }
