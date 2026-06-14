@@ -8,6 +8,15 @@ const oneMonth = () => {
   return { start, end };
 };
 
+const weekMethod = (data) => {
+  const start = data;
+  const end = new Date();
+  return {
+    start,
+    end,
+  };
+};
+
 const specificMonth = (month) => {
   const parsedDate = new Date(month);
   const start = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
@@ -41,14 +50,15 @@ const customDate = (startDate, endDate) => {
 
 // ================= Calculation Main Function ================= //
 const filterBoth = (query) => {
-  const { thisMonth, startDate, endDate, thisYear } = query;
+  const { week, thisMonth, startDate, endDate, thisYear } = query;
 
   let cal;
   // Current Month
   if (thisMonth && !startDate && !endDate && !thisYear) {
     cal = oneMonth();
+  } else if (week) {
+    cal = weekMethod(week);
   }
-
   // Specific Month
   else if (startDate && !endDate && !thisYear) {
     cal = specificMonth(startDate);
