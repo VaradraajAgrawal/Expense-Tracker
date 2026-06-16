@@ -13,8 +13,8 @@ const transactionValidation = (query) => {
   let page = Math.ceil(Number(query.page));
 
   const category = (category) => {
-    if (category === undefined || category === "") {
-      console.log("Not defined Category");
+    if (!category) {
+      return null;
     } else if (!allCategory.includes(category)) {
       throw new Error("No such Category!!");
     } else {
@@ -24,7 +24,7 @@ const transactionValidation = (query) => {
 
   const typeMethod = (type) => {
     if (!type) {
-      return "Expense";
+      return null;
     } else if (!allTypes.includes(type)) {
       throw new Error("Invalid type!!");
     } else {
@@ -44,31 +44,34 @@ const transactionValidation = (query) => {
 
   const dateValidate = (date) => {
     if (!date) {
-      console.log("Input Not Provided");
-      return;
+      return null;
     }
     const parsed = new Date(date);
     if (isNaN(parsed.getTime())) {
       throw new Error("Invalid Date Input!!");
     }
-    return date;
+    return parsed;
   };
 
   const minMax = (min, max) => {
     if (min || max) {
       if (isNaN(min)) {
-        //   throw new Error("Invalid value in min or max");
-        data.max = max;
+        return { max };
       } else if (isNaN(max)) {
-        data.min = min;
+        return { min };
       } else if (min > max) {
-        data.max = min;
-        data.min = max;
+        return {
+          max: min,
+          min: max,
+        };
       } else {
-        data.min = min;
-        data.max = max;
+        return {
+          min,
+          max,
+        };
       }
-      return { ...data, min: min, max: max };
+    } else {
+      return null;
     }
   };
 
@@ -84,7 +87,7 @@ const transactionValidation = (query) => {
   data.thisMonth = dateValidate(query.thisMonth);
   data.startDate = dateValidate(query.startDate);
   data.endDate = dateValidate(query.endDate);
-  minMax(Number(query.min), Number(query.max));
+  data.Amt = minMax(Number(query.min), Number(query.max));
 
   if (!data.endDate && !data.startDate && !data.thisMonth) {
     data.week = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -93,7 +96,6 @@ const transactionValidation = (query) => {
   if (data.startDate && data.endDate && data.startDate >= data.endDate) {
     throw new Error("Enter Valid Output!!");
   }
-  console.log(data);
   return data;
 };
 

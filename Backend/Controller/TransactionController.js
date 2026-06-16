@@ -101,12 +101,12 @@ const stats = middleware(async (req, res, next) => {
 // ================= Pagination Main Function ================= //
 const mainFilter = middleware(async (req, res, next) => {
   let validated = transactionValidation(req.query);
-  let fil = transactionFilter(validated, req.user);
 
+  let { fil, sorted } = transactionFilter(validated, req.user);
   let { totalDocuments, maxPage, filtered, parse } = await paginationHelper(
     fil,
-    req.page,
-    req.sort,
+    sorted,
+    validated.page,
   );
 
   res.status(200).json({
