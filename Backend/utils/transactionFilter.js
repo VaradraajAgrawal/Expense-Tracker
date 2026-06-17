@@ -53,8 +53,7 @@ const transactionFilter = (query, user) => {
     console.log("Nothing in Amount!!");
   } else {
     block1: if (query.Amt.min && query.Amt.max) {
-      fil.amount = { $gte: Number(query.Amt.min) };
-      fil.amount = { $lte: Number(query.Amt.max) };
+      fil.amount = { $gte: Number(query.Amt.min), $lte: Number(query.Amt.max) };
       break block1;
     } else if (query.Amt.min || query.Amt.max) {
       if (query.Amt.min) {
@@ -65,7 +64,6 @@ const transactionFilter = (query, user) => {
       }
     }
   }
-  console.log(fil);
   return { fil, sorted };
 };
 

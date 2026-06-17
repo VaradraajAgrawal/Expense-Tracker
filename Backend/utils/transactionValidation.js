@@ -96,6 +96,8 @@ const transactionValidation = (query) => {
   if (data.startDate && data.endDate && data.startDate >= data.endDate) {
     throw new Error("Enter Valid Output!!");
   }
+
+  console.log(data);
   return data;
 };
 
