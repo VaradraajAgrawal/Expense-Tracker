@@ -6,7 +6,7 @@ const userRou = require("./routes/UserRoute");
 const dotenv = require("dotenv");
 const cookiePArser = require("cookie-parser");
 const transactionRoute = require("./routes/TransactionRoute");
-
+const budgetRoute = require("./routes/budgetRoute");
 dotenv.config();
 connectDB();
 const app = express();
@@ -16,7 +16,7 @@ app.use(cookiePArser());
 
 app.use("/user", userRou);
 app.use("/Transaction", transactionRoute);
-
+app.use("/Budget", budgetRoute);
 app.use(errorMid);
 app.listen(process.env.PORT || 5000, () => {
   console.log("Express Working");

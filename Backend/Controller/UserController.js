@@ -3,6 +3,7 @@ const User = require("../models/User");
 const ErrorHandler = require("../utils/prac");
 const Transaction = require("../models/Transaction");
 const jwt = require("jsonwebtoken");
+const Budget = require("../models/Budget");
 // ─── Helper ──────────────────────────────────────────────────────────────────
 // Generates tokens, stores refresh token in DB, sends cookie + JSON response
 const sendToken = async (statusCode, user, res, transaction) => {
@@ -68,6 +69,14 @@ const createUser = middleware(async (req, res, next) => {
     password,
     Transaction,
   });
+
+  const userBudget = await Budget.create({
+    user: newUser._id,
+    limit: 0,
+    currentDate: 0,
+  });
+
+  console.log("userController", userBudget);
 
   await sendToken(201, newUser, res);
 });

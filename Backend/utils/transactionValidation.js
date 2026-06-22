@@ -97,7 +97,6 @@ const transactionValidation = (query) => {
     throw new Error("Enter Valid Output!!");
   }
 
-  console.log(data);
   return data;
 };
 
