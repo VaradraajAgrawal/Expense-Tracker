@@ -7,6 +7,7 @@ const budgetSchema = new Schema(
     user: { type: Schema.Types.ObjectId, ref: "User" },
     limit: { type: Number },
     currentDate: { type: Date },
+    history: [],
   },
   { timestamps: true },
 );

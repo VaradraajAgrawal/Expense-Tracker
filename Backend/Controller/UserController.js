@@ -74,6 +74,7 @@ const createUser = middleware(async (req, res, next) => {
     user: newUser._id,
     limit: 0,
     currentDate: 0,
+    history: [],
   });
 
   console.log("userController", userBudget);

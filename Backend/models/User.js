@@ -34,7 +34,7 @@ UserSchema.methods.comparePassword = async function (password) {
 
 // Generate short-lived access token using `this` (no need to pass userId) and new payload is being created with new key of id instead of _id //
 UserSchema.methods.accessToken = function () {
-  return jwt.sign({ id: this._id }, process.env.SECRET, { expiresIn: "15m" });
+  return jwt.sign({ id: this._id }, process.env.SECRET, { expiresIn: "1hr" });
 };
 
 // Generate long-lived refresh token using `this` and new payload is being created with new key of id instead of _id //

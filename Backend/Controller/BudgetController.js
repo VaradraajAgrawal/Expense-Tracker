@@ -1,4 +1,5 @@
 const Budget = require("../models/Budget");
+const budgetService = require("../Service/BudgetService");
 
 const budgetUpdate = async (req, res) => {
   let { limit, currentDate } = req.body;
@@ -6,31 +7,18 @@ const budgetUpdate = async (req, res) => {
   if (!limit || !currentDate) {
     console.log("Error Occured!!");
   }
-  if (isNaN(currentDate)) {
+  if (limit < 0) {
+    throw new Error("Limit cannot be negative!!");
+  }
+  if (isNaN(currentDate) || currentDate > 27) {
     throw new Error("current Date Invalid!!");
   }
-  let datenow = new Date();
-  let tryDate = new Date(
-    datenow.getFullYear(),
-    datenow.getMonth(),
-    currentDate,
-  );
-  let invalidDate = new Date(datenow.getFullYear(), datenow.getMonth(), 28);
 
-  if (tryDate > invalidDate) {
-    throw new Error("Cannot set budget!!");
-  }
+  const updatedBudget = await budgetService(limit, currentDate, req.user);
 
-  let updatedBudget = await Budget.findOneAndUpdate(
-    {
-      user: req.user._id,
-    },
-    { limit, currentDate: tryDate },
-    { new: true },
-  );
-  console.log(updatedBudget);
   res.status(200).json({
     success: true,
+    updatedBudget,
   });
 };
 module.exports = budgetUpdate;
