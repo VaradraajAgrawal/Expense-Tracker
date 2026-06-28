@@ -77,8 +77,6 @@ const createUser = middleware(async (req, res, next) => {
     history: [],
   });
 
-  console.log("userController", userBudget);
-
   await sendToken(201, newUser, res);
 });
 

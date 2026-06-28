@@ -2,14 +2,17 @@ const Budget = require("../models/Budget");
 
 const budgetService = async (limit, currentDate, user) => {
   let budget = await Budget.findOne({ user: user._id });
-  let tryDate;
-  let prevDate = budget.history;
   let datenow = new Date();
+  let tryDate = new Date(
+    datenow.getFullYear(),
+    datenow.getMonth(),
+    currentDate,
+  );
+  let prevDate = budget.history;
   let startDate;
   let endDate;
   let data;
   if (prevDate.length === 0) {
-    tryDate = new Date(datenow.getFullYear(), datenow.getMonth(), currentDate);
     endDate = new Date(
       tryDate.getFullYear(),
       tryDate.getMonth() + 1,
@@ -24,7 +27,6 @@ const budgetService = async (limit, currentDate, user) => {
       lstInd.getMonth(),
       lstInd.getDate(),
     );
-    tryDate = new Date(datenow.getFullYear(), datenow.getMonth(), currentDate);
     if (tryDate >= nxt) {
       prevDate.push({
         startDate: tryDate,
