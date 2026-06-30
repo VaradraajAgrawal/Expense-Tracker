@@ -1,10 +1,11 @@
+import { useState } from "react";
 import "./App.css";
-import Dashboard from "./Components/Pages/Dashboard";
+import MainLayout from "./Components/Layout/MainLayout";
 function App() {
   return (
-    <>
-      <Dashboard />
-    </>
+    <div className="flex w-screen h-screen">
+      <MainLayout />
+    </div>
   );
 }
 
