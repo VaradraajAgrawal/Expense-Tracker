@@ -1,16 +1,8 @@
 import React from "react";
 import NavBar from "./NavBar";
 import SideBar from "./SideBar";
-import SummaryCard from "../Features/Dashboard/SummaryCard";
+import Dashboard from "../../Pages/Dashboard";
 const MainLayout = () => {
-  const summary = {
-    id: 1,
-    title: "Balance",
-    value: 42560,
-    subtitle: "vs last month",
-    trend: "up",
-    icon: "💰",
-  };
   return (
     <div className="w-full h-full">
       <div className="flex flex-col bg-black w-full h-full">
@@ -24,8 +16,7 @@ const MainLayout = () => {
             <SideBar />
           </div>
           <div className="flex justify-center items-center w-full gap-9 h-full">
-            <SummaryCard summary={summary} />
-            <h1 className="text-3xl text-black">Content</h1>
+            <Dashboard />
           </div>
         </div>
       </div>

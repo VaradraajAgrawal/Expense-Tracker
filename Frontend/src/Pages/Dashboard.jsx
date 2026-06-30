@@ -1,7 +1,59 @@
 import React from "react";
-
+import SummaryCard from "../Components/Features/Dashboard/SummaryCard";
+import {
+  Wallet,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Receipt,
+} from "lucide-react";
 const Dashboard = () => {
-  return <div></div>;
+  const summaryData = [
+    {
+      id: 1,
+      title: "Balance",
+      value: "₹42,560",
+      subtitle: "Current Balance",
+      trend: "+12%",
+      icon: Wallet,
+    },
+    {
+      id: 2,
+      title: "Income",
+      value: "₹58,000",
+      subtitle: "This Month",
+      trend: "+5%",
+      icon: ArrowDownToLine,
+    },
+    {
+      id: 3,
+      title: "Expense",
+      value: "₹15,440",
+      subtitle: "This Month",
+      trend: "-8%",
+      icon: ArrowUpFromLine,
+    },
+    {
+      id: 4,
+      title: "Transactions",
+      value: "132",
+      subtitle: "This Month",
+      trend: "+18",
+      icon: Receipt,
+    },
+  ];
+  return (
+    <>
+      {summaryData.length > 0 ? (
+        summaryData.map((content) => (
+          <div>
+            <SummaryCard summary={content} />
+          </div>
+        ))
+      ) : (
+        <h1 className="text-3xl text-black">No Content</h1>
+      )}
+    </>
+  );
 };
 
 export default Dashboard;
