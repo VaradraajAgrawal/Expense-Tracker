@@ -15,7 +15,7 @@ const MainLayout = () => {
           <div className="w-[25vw] h-full bg-amber-50 ">
             <SideBar />
           </div>
-          <div className="flex justify-center items-center w-full gap-9 h-full">
+          <div className="flex flex-col justify-center items-center w-full gap-9 h-full">
             <Dashboard />
           </div>
         </div>

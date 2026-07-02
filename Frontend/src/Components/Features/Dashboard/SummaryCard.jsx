@@ -5,10 +5,7 @@ const SummaryCard = ({ summary }) => {
   const Icon = summary.icon;
   return (
     <>
-      <div
-        key={id}
-        className="h-[200px] w-[200px] bg-amber-300 flex p-3 flex-col gap-[20px] rounded-xl shadow"
-      >
+      <div key={id} className="flex-col gap-[20px] flex w-full h-full">
         <div className="flex justify-between w-full h-5 p-2">
           <Icon />
           <h1 className="text-black">...</h1>

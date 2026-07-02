@@ -6,6 +6,7 @@ import {
   ArrowUpFromLine,
   Receipt,
 } from "lucide-react";
+import BudgetCard from "../Components/Features/Dashboard/BudgetCard";
 const Dashboard = () => {
   const summaryData = [
     {
@@ -41,17 +42,28 @@ const Dashboard = () => {
       icon: Receipt,
     },
   ];
+  const budgets = {
+    title: "Monthly Budget",
+    remaining: 12000,
+    budgets: 30000,
+    percentage: 63,
+  };
   return (
     <>
-      {summaryData.length > 0 ? (
-        summaryData.map((content) => (
-          <div>
-            <SummaryCard summary={content} />
-          </div>
-        ))
-      ) : (
-        <h1 className="text-3xl text-black">No Content</h1>
-      )}
+      <div className="flex gap-5 bg-red-600">
+        {summaryData.length > 0 ? (
+          summaryData.map((content) => (
+            <div className="h-[200px] w-[200px] bg-amber-300 flex p-3  rounded-xl shadow">
+              <SummaryCard summary={content} />
+            </div>
+          ))
+        ) : (
+          <h1 className="text-3xl text-black">No Content</h1>
+        )}
+      </div>
+      <div>
+        <BudgetCard budget={budgets} />
+      </div>
     </>
   );
 };
