@@ -134,14 +134,15 @@ const userLogin = middleware(async (req, res, next) => {
 // Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. Verify cant store anything //
 const refreshToken = middleware(async (req, res, next) => {
   const token = req.cookies.refreshToken;
+  console.log("token", token);
 
   if (!token) {
-    next(new ErrorHandler("No token", 404));
+    next(new ErrorHandler("No Token", 401));
   }
   // Decode has the userId as token is made with id then later that id is used to find User from DB //
   jwt.verify(token, process.env.REFRESH, async (err, decode) => {
     if (err) {
-      return next(new ErrorHandler("Invalid Token", 404));
+      return next(new ErrorHandler("TOKEN_EXPIRED", 401));
     }
     // Ensuring and Checking token is same i.e 2nd argument(getRefreshToken)
     const user = await User.findOne({ _id: decode.id, getRefreshToken: token });
@@ -154,7 +155,6 @@ const refreshToken = middleware(async (req, res, next) => {
     res.status(200).json({
       success: true,
       token: newAccessToken,
-      userData: user,
     });
   });
 });

@@ -11,12 +11,15 @@ const AuthFunction = middleware(async (req, res, next) => {
   }
   // Access token here and not Refresh Token //
   let token = Auth.split(" ")[1];
+  try {
+    const decode = await jwt.verify(token, process.env.SECRET);
+    // We search by ID and not _id as when we used .sign(id: this._id), (here it is packed as ID so when we call it in verify we use ID) this made a new object with key of id and not _id moreover req.user will contain _id and not id as we are fetching data from database//
+    req.user = await User.findById(decode.id);
 
-  const decode = await jwt.verify(token, process.env.SECRET);
-  // We search by ID and not _id as when we used .sign(id: this._id), (here it is packed as ID so when we call it in verify we use ID) this made a new object with key of id and not _id moreover req.user will contain _id and not id as we are fetching data from database//
-  req.user = await User.findById(decode.id);
-
-  next();
+    next();
+  } catch (error) {
+    res.status(401).json({ success: false, message: "TOKEN_EXPIRED" });
+  }
 });
 
 module.exports = AuthFunction;

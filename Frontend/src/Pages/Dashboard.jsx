@@ -7,7 +7,19 @@ import {
   Receipt,
 } from "lucide-react";
 import BudgetCard from "../Components/Features/Dashboard/BudgetCard";
+import { useEffect } from "react";
+import { useState } from "react";
+import api from "../api/Interceptor";
 const Dashboard = () => {
+  const [data, setData] = useState(null);
+
+  const logIn = async () => {
+    await api.post("user/login", {
+      email: "new@gmail.com",
+      password: "1234",
+    });
+  };
+
   const summaryData = [
     {
       id: 1,
@@ -48,6 +60,7 @@ const Dashboard = () => {
     budgets: 30000,
     percentage: 63,
   };
+
   return (
     <>
       <div className="flex gap-5 bg-red-600">
@@ -63,6 +76,15 @@ const Dashboard = () => {
       </div>
       <div>
         <BudgetCard budget={budgets} />
+      </div>
+      <div>
+        <button
+          onClick={() => logIn()}
+          className="bg-green-300 p-2 rounded-full w-[200px] h-12"
+        >
+          {" "}
+          Log In
+        </button>
       </div>
     </>
   );
