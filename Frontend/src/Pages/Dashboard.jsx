@@ -10,16 +10,9 @@ import BudgetCard from "../Components/Features/Dashboard/BudgetCard";
 import { useEffect } from "react";
 import { useState } from "react";
 import api from "../api/Interceptor";
+import { setToken } from "../api/axios";
 const Dashboard = () => {
   const [data, setData] = useState(null);
-
-  const logIn = async () => {
-    await api.post("user/login", {
-      email: "new@gmail.com",
-      password: "1234",
-    });
-  };
-
   const summaryData = [
     {
       id: 1,
@@ -78,13 +71,13 @@ const Dashboard = () => {
         <BudgetCard budget={budgets} />
       </div>
       <div>
-        <button
+        {/* <button
           onClick={() => logIn()}
           className="bg-green-300 p-2 rounded-full w-[200px] h-12"
         >
           {" "}
           Log In
-        </button>
+        </button> */}
       </div>
     </>
   );

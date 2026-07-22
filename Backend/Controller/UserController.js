@@ -59,7 +59,7 @@ const createUser = middleware(async (req, res, next) => {
   // Check if email already exists to give a clear error
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return next(new ErrorHandler("Email already registered", 409));
+    return next(new ErrorHandler("Email already registered", 400));
   }
 
   const newUser = await User.create({
@@ -134,7 +134,6 @@ const userLogin = middleware(async (req, res, next) => {
 // Getting refresh token from cookies then veryfing it inside verify. Verify takes 2 argument err & decode here decode is userdata and err is error. We find user through the decode.id after verification. Verify cant store anything //
 const refreshToken = middleware(async (req, res, next) => {
   const token = req.cookies.refreshToken;
-  console.log("token", token);
 
   if (!token) {
     next(new ErrorHandler("No Token", 401));
@@ -155,6 +154,7 @@ const refreshToken = middleware(async (req, res, next) => {
     res.status(200).json({
       success: true,
       token: newAccessToken,
+      user,
     });
   });
 });
