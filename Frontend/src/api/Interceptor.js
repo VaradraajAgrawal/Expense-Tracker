@@ -1,5 +1,8 @@
 import axios from "axios";
 import { clearToken, getToken, setToken } from "./axios";
+import Loader from "../Pages/Loader";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../authentication/AuthContext";
 let isRefreshing = false;
 let failedQueue = [];
 const api = axios.create({
@@ -8,10 +11,6 @@ const api = axios.create({
   timeout: 10000,
 });
 api.interceptors.request.use((config) => {
-  console.log("=== Request Interceptor ===");
-  console.log(config.method);
-  console.log(config.url);
-
   const token = getToken();
   console.log("Token:", token);
 
@@ -57,7 +56,6 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (error) {
         processQueue(error);
-        clearToken();
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
@@ -66,5 +64,13 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+const protectedRoute = ({ children }) => {
+  const { loading, authenticated } = useAuth();
+
+  if (loading) return <Loader />;
+  if (authenticated) return request;
+  return <Navigate to="/login" replace />;
+};
 
 export default api;

@@ -1,23 +1,7 @@
-import { useEffect, useState } from "react";
 import "./App.css";
-import MainLayout from "./Components/Layout/MainLayout";
-import api from "./api/Interceptor";
-import { setToken } from "./api/axios";
+import MainLayout from "./Components/LayoutComp/MainLayout";
 
 function App() {
-  useEffect(() => {
-    const logIn = async () => {
-      let response = await api.post("user/login", {
-        email: "new@gmail.com",
-        password: "1234",
-      });
-      setToken(response.data.token);
-      const responses = await api.get("/Transaction/stats");
-      console.log(responses.data);
-    };
-
-    logIn();
-  }, []);
   return (
     <div className="flex w-screen h-screen">
       <MainLayout />

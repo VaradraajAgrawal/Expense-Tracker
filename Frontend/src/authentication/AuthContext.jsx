@@ -4,12 +4,15 @@ import { clearToken, setToken } from "../api/axios";
 
 const AuthContext = createContext();
 
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  return context;
+};
+
 const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const value = { loading, user, authenticated };
-
   const initializeAuth = async () => {
     try {
       let response = await api.post("/user/refresh");
@@ -27,10 +30,25 @@ const AuthProvider = ({ children }) => {
   };
 
   const login = async (credential) => {
-    let res = await api.post("/user/login", credential);
-    setToken(res.token);
-    setUser(res.updatedUser);
+    try {
+      let res = await api.post("/user/login", credential);
+      setToken(res.data.token);
+      setUser(res.data.user);
+      setAuthenticated(true);
+    } catch (error) {
+      console.log(error.message);
+      setAuthenticated(false);
+      setUser(null);
+      throw error;
+    }
   };
+  const logout = () => {
+    clearToken();
+    setAuthenticated(false);
+    setUser(null);
+  };
+
+  const value = { loading, user, authenticated, logout, login };
 
   useEffect(() => {
     initializeAuth();
@@ -39,4 +57,4 @@ const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthContext;
+export default AuthProvider;

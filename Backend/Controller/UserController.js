@@ -6,43 +6,36 @@ const jwt = require("jsonwebtoken");
 const Budget = require("../models/Budget");
 // ─── Helper ──────────────────────────────────────────────────────────────────
 // Generates tokens, stores refresh token in DB, sends cookie + JSON response
-const sendToken = async (statusCode, user, res, transaction) => {
-  // No need to pass user._id — instance methods use `this` internally
-  const access = user.accessToken();
-  const refresh = user.refreshToken();
+const sendToken = async (statusCode, user, res, transactions = []) => {
+  const accessToken = user.accessToken();
+  const refreshToken = user.refreshToken();
 
-  // findByIdAndUpdate skips pre("save"), so password won't be re-hashed and is not required here to be hashed again //
   const updatedUser = await User.findByIdAndUpdate(
     user._id,
     {
-      getRefreshToken: refresh,
+      getRefreshToken: refreshToken,
     },
-    { new: true },
+    {
+      new: true,
+    },
   ).select("-password");
 
   const cookieOptions = {
-    httpOnly: true, // not accessible via JS
-    secure: process.env.NODE_ENV === "production", // HTTPS only in prod
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // cross-site in prod
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 
-  if (transaction && transaction.length > 0) {
-    return res
-      .status(statusCode)
-      .cookie("refreshToken", refresh, cookieOptions)
-      .json({
-        success: true,
-        token: access,
-        updatedUser,
-        transaction,
-      });
-  }
-  res.status(statusCode).cookie("refreshToken", refresh, cookieOptions).json({
-    success: true,
-    token: access,
-    updatedUser,
-  });
+  return res
+    .status(statusCode)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json({
+      success: true,
+      accessToken,
+      user: updatedUser,
+      transactions,
+    });
 };
 
 // ─── Create User ──────────────────────────────────────────────────────────────
@@ -97,7 +90,7 @@ const getUserId = middleware(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    data,
+    user: data,
   });
 });
 
@@ -153,7 +146,7 @@ const refreshToken = middleware(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      token: newAccessToken,
+      accessToken: newAccessToken,
       user,
     });
   });
