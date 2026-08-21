@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/Interceptor";
+// import { clearToken, setToken } from "../api/axios";
 import { clearToken, setToken } from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -10,15 +12,17 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const initializeAuth = async () => {
     try {
-      let response = await api.post("/user/refresh");
-      setToken(response.data.token);
+      let response = await api.get("/user/refresh");
+      setToken(response.data.accessToken);
       setUser(response.data.user);
       setAuthenticated(true);
+      navigate("/dashboard");
     } catch (error) {
       console.log(error.message);
       clearToken();
@@ -32,9 +36,10 @@ const AuthProvider = ({ children }) => {
   const login = async (credential) => {
     try {
       let res = await api.post("/user/login", credential);
-      setToken(res.data.token);
+      setToken(res.data.accessToken);
       setUser(res.data.user);
       setAuthenticated(true);
+      navigate("/dashboard");
     } catch (error) {
       console.log(error.message);
       setAuthenticated(false);

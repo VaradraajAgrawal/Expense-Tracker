@@ -8,7 +8,7 @@ import AppLayout from "./Layout/AppLayout";
 import Dashboard from "./Pages/Dashboard";
 import Transaction from "./Pages/Transaction";
 import Budget from "./Pages/Budget";
-
+import ProtectedRoute from "./Layout/ProtectedRoute";
 function App() {
   return (
     <Routes>

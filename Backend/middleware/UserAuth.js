@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 
 const AuthFunction = middleware(async (req, res, next) => {
   const Auth = req.headers.authorization;
-  console.log(Auth);
 
   if (!Auth || !Auth.startsWith("Bearer")) {
     return next(new ErrorHandler("Token Error", 400));

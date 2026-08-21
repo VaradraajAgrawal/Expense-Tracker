@@ -4,7 +4,7 @@ import Loader from "../Pages/Loader";
 import { Navigate, Outlet } from "react-router-dom";
 
 const ProtectedRoute = () => {
-  const { loading, authenticated } = useAuth;
+  const { loading, authenticated } = useAuth();
   if (loading) {
     return <Loader />;
   }

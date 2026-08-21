@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../authentication/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,8 +27,6 @@ const Login = () => {
       setError("");
 
       await login(credentials);
-
-      navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

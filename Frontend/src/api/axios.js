@@ -1,8 +1,7 @@
-let token;
+let token = null;
 
-export const setToken = (data) => {
-  token = data;
-  return token;
+export const setToken = (newToken) => {
+  token = newToken;
 };
 
 export const getToken = () => {
@@ -11,5 +10,4 @@ export const getToken = () => {
 
 export const clearToken = () => {
   token = null;
-  return token;
 };

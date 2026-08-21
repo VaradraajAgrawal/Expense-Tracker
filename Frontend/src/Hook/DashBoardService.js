@@ -78,5 +78,5 @@ export const useDashboard = () => {
     };
   }, [fetchDashboard]);
 
-  return { budget, transaction, user, error };
+  return { budget, transaction, user, error, isRefreshing, initialLoad };
 };

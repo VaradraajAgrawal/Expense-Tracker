@@ -1,76 +1,126 @@
 import axios from "axios";
+
 import { clearToken, getToken, setToken } from "./axios";
-import Loader from "../Pages/Loader";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../authentication/AuthContext";
+
 let isRefreshing = false;
 let failedQueue = [];
+
 const api = axios.create({
   baseURL: "http://localhost:5000",
   withCredentials: true,
   timeout: 10000,
 });
-api.interceptors.request.use((config) => {
-  const token = getToken();
-  console.log("Token:", token);
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+// --------------------------------------------------
+// Request Interceptor
+// --------------------------------------------------
 
-  return config;
-});
+api.interceptors.request.use(
+  (config) => {
+    const token = getToken();
 
-const processQueue = (error) => {
-  if (error === null) {
-    failedQueue.map((request) => {
-      return request.resolve();
-    });
-  } else {
-    failedQueue.map((request) => {
-      return request.reject();
-    });
-  }
-  failedQueue = [];
-};
+    console.log("Token:", token);
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (
-      error.response.status === 401 &&
-      error.response.message === "TOKEN_EXPIRED" &&
-      !originalRequest._retry
-    ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject, originalRequest });
-        }).then(() => api(originalRequest));
-      }
-      try {
-        isRefreshing = true;
-        let response = api.get("/user/refresh");
-        setToken(response.token);
-        processQueue(null);
-        return api(originalRequest);
-      } catch (error) {
-        processQueue(error);
-        return Promise.reject(error);
-      } finally {
-        isRefreshing = false;
-      }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
+    return config;
+  },
+  (error) => {
     return Promise.reject(error);
   },
 );
 
-const protectedRoute = ({ children }) => {
-  const { loading, authenticated } = useAuth();
+// --------------------------------------------------
+// Process requests waiting for token refresh
+// --------------------------------------------------
 
-  if (loading) return <Loader />;
-  if (authenticated) return request;
-  return <Navigate to="/login" replace />;
+const processQueue = (error) => {
+  failedQueue.forEach((request) => {
+    if (error) {
+      request.reject(error);
+    } else {
+      request.resolve();
+    }
+  });
+
+  failedQueue = [];
 };
+
+// --------------------------------------------------
+// Response Interceptor
+// --------------------------------------------------
+
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If there is no response, this is probably
+    // a network/timeout/cancellation error.
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+
+    // Never try to refresh the refresh request itself.
+    if (originalRequest?.url === "/user/refresh") {
+      return Promise.reject(error);
+    }
+
+    const isTokenExpired =
+      error.response.status === 401 &&
+      error.response.data?.message === "TOKEN_EXPIRED";
+
+    if (!isTokenExpired || originalRequest?._retry) {
+      return Promise.reject(error);
+    }
+
+    // --------------------------------------------------
+    // Another request is already refreshing the token
+    // --------------------------------------------------
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve,
+          reject,
+        });
+      }).then(() => {
+        return api(originalRequest);
+      });
+    }
+
+    // --------------------------------------------------
+    // This request becomes responsible for refreshing
+    // --------------------------------------------------
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const response = await api.post("/user/refresh");
+
+      const newAccessToken = response.data.accessToken;
+
+      setToken(newAccessToken);
+
+      processQueue(null);
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      clearToken();
+
+      processQueue(refreshError);
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
+  },
+);
 
 export default api;

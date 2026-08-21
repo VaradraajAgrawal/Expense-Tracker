@@ -1,7 +1,7 @@
 import React from "react";
-import NavBar from "../Components/LayoutComp/NavBar";
+import NavBar from "../Components/Features/LayoutComp/NavBar";
 import Dashboard from "../Pages/Dashboard";
-import SideBar from "../Components/LayoutComp/SideBar";
+import SideBar from "../Components/Features/LayoutComp/SideBar";
 const AppLayout = () => {
   return (
     <div className="w-full h-full">
