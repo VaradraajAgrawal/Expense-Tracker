@@ -29,6 +29,8 @@ const Dashboard = () => {
     return <Loader />;
   }
 
+  console.log("All Details", user.name, user.email, budget, transaction);
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-5 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">

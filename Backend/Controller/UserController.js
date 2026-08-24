@@ -94,6 +94,17 @@ const getUserId = middleware(async (req, res, next) => {
   });
 });
 
+const loggedInUser = middleware(async (req, res, next) => {
+  const user = req.user;
+  if (!user) {
+    return next(new ErrorHandler("No user Found!!", 400));
+  }
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
+
 // ─── User Login ───────────────────────────────────────────────────────────────
 const userLogin = middleware(async (req, res, next) => {
   const { email, password } = req.body;
@@ -153,4 +164,10 @@ const refreshToken = middleware(async (req, res, next) => {
 });
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
-module.exports = { createUser, getUserId, userLogin, refreshToken };
+module.exports = {
+  createUser,
+  getUserId,
+  userLogin,
+  refreshToken,
+  loggedInUser,
+};

@@ -30,8 +30,8 @@ export const useDashboard = () => {
           ]);
           if (isMounted.current) {
             setBudget(budgetData);
-            setTransaction(transactionData);
-            setUser(userData);
+            setTransaction(transactionData.filtered);
+            setUser(userData.user);
           }
         } catch (err) {
           if (err.message === "ERR_CANCELED") {

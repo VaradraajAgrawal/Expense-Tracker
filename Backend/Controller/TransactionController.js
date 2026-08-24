@@ -50,7 +50,10 @@ const deleteTransaction = middleware(async (req, res, next) => {
   if (!id) {
     return next(new ErrorHandler("Transaction not found!!", 404));
   }
-  await Transcation.findOneAndDelete({ _id: id, user: req.user._id });
+  const transaction = await Transcation.findOneAndDelete({
+    _id: id,
+    user: req.user._id,
+  });
   user.Transaction.pull(id);
 
   await user.save();
@@ -58,7 +61,7 @@ const deleteTransaction = middleware(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Transaction got deleted",
-    user,
+    transaction,
   });
 });
 
@@ -78,7 +81,7 @@ const updateTransaction = middleware(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    data: updated,
+    transaction: updated,
   });
 });
 
