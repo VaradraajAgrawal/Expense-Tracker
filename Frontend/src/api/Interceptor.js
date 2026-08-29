@@ -36,6 +36,7 @@ api.interceptors.request.use(
 // Process requests waiting for token refresh
 // --------------------------------------------------
 
+// as null will we passed that would make the else block run //
 const processQueue = (error) => {
   failedQueue.forEach((request) => {
     if (error) {

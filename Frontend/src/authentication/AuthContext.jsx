@@ -22,7 +22,6 @@ const AuthProvider = ({ children }) => {
       setToken(response.data.accessToken);
       setUser(response.data.user);
       setAuthenticated(true);
-      navigate("/dashboard");
     } catch (error) {
       console.log(error.message);
       clearToken();

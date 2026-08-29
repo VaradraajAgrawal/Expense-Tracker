@@ -1,7 +1,7 @@
-import { getTransaction } from "../Services/transaction";
-import { getBudget } from "../Services/budget";
-import { getUser } from "../Services/user";
+import { getBudget } from "../Services/Dasboard/budget";
+import { getTransaction } from "../Services/Dasboard/transaction";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getUser } from "../Services/Dasboard/user";
 
 export const useDashboard = () => {
   const [user, setUser] = useState({ name: "", email: "" });
@@ -12,11 +12,11 @@ export const useDashboard = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const isMounted = useRef(true);
   const refreshLogic = useRef(null);
+
   const fetchDashboard = useCallback(
     async ({ controller, refreshing = false } = {}) => {
       const signal = controller.signal;
       if (isMounted.current) {
-        setError(null);
         if (refreshing) {
           setIsRefreshing(true);
         }
@@ -29,24 +29,41 @@ export const useDashboard = () => {
             getTransaction({ signal }),
           ]);
           if (isMounted.current) {
-            setBudget(budgetData);
-            setTransaction(transactionData.filtered);
-            setUser(userData.user);
+            if (
+              !refreshing ||
+              (controller === refreshLogic.current && refreshing)
+            ) {
+              setBudget(budgetData);
+              setTransaction(transactionData.filtered);
+              setUser(userData.user);
+            }
           }
         } catch (err) {
           if (err.message === "ERR_CANCELED") {
             return;
           }
-          if (isMounted.current) {
+          if (isMounted.current && !refreshing) {
+            setError(err);
+          }
+          // including "controller === refreshLogic.current" as it will help to check race confition in refreshLogic //
+          if (
+            isMounted.current &&
+            controller === refreshLogic.current &&
+            refreshing
+          ) {
             setError(err);
           }
         } finally {
           // if abortA reaches FINALLY it shouldnt make refLogic null thats why condition belongs here //
-          if (controller === refreshLogic.current) {
+          if (
+            isMounted.current &&
+            controller === refreshLogic.current &&
+            refreshing
+          ) {
             refreshLogic.current = null;
-          }
-          if (isMounted.current) {
             setIsRefreshing(false);
+          }
+          if (isMounted.current && !refreshing) {
             setInitialLoad(false);
           }
         }
