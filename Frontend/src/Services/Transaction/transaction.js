@@ -13,7 +13,7 @@ const getTransaction = async ({
   page,
 } = {}) => {
   try {
-    const { data } = await api.get("/", {
+    const { data } = await api.get("/Transaction", {
       signal,
       params: {
         min: amountMin,
