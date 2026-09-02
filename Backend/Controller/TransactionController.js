@@ -66,7 +66,7 @@ const deleteTransaction = middleware(async (req, res, next) => {
 });
 
 const updateTransaction = middleware(async (req, res, next) => {
-  const updated = await Transcation.findByIdAndUpdate(
+  const updated = await Transcation.findOneAndUpdate(
     { _id: req.params.id, user: req.user._id },
     req.body,
     {

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
+import { createTransactionService } from "../Services/Transaction/createTransaction";
 import { getTransaction } from "../Services/Dasboard/transaction";
-
+import { updateTransactionService } from "../Services/Transaction/updateTransactionService";
+import { deleteTransactionService } from "../Services/Transaction/deleteTransactionService";
 const initialFilters = {
   minAmount: null,
   maxAmount: null,
@@ -169,6 +170,32 @@ export const useTransaction = () => {
     };
   }, []);
 
+  // CRUD OPERATIONS //
+
+  const refetchAppliedRequest = () => {
+    startRequest({
+      refreshing: true,
+      query: appliedFilters,
+    });
+  };
+
+  const createTransaction = async ({ amount, type, category } = {}) => {
+    await createTransactionService({ amount, type, category });
+    // we dont need to setTransaction as it is added in backend we just need to apply prev filter again and fetch data //
+    refetchAppliedRequest();
+  };
+
+  const updateTransaction = async ({ data, id } = {}) => {
+    // 2 API are being run 1st is to update the transaction and then we are refetching transaction from backend again so that the updates are visible //
+    await updateTransactionService({ data, id });
+    refetchAppliedRequest();
+  };
+
+  const deleteTransaction = async ({ id } = {}) => {
+    await deleteTransactionService({ id });
+    refetchAppliedRequest();
+  };
+
   return {
     transaction,
     totalDocuments,
@@ -182,5 +209,9 @@ export const useTransaction = () => {
 
     isRefreshing,
     error,
+
+    createTransaction,
+    updateTransaction,
+    deleteTransaction,
   };
 };
