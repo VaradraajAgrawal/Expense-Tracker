@@ -23,6 +23,7 @@ const Dashboard = () => {
     isRefreshing,
     initialLoad,
     refreshClicked,
+    dashboardUpdate,
   } = useDashboard();
 
   if (initialLoad) {
@@ -32,12 +33,48 @@ const Dashboard = () => {
   const transactionCount = Array.isArray(transaction) ? transaction.length : 0;
 
   const budgetLimit = budget?.summary?.Budget ?? budget?.budget ?? 0;
-
   const totalIncome = budget?.summary?.totalIncome ?? 0;
   const totalExpense = budget?.summary?.totalExpense ?? 0;
-  const remainingBudget = budget?.summary?.remainingBudget ?? 0;
 
-  const expensePercentage = budget?.summary?.expensePercentage ?? 0;
+  // The backend now defines remaining budget as:
+  // budget limit - total expense.
+  const remainingBudget =
+    budget?.summary?.remainingBudget ??
+    Math.max(Number(budgetLimit) - Number(totalExpense), 0);
+
+  const expensePercentage =
+    budget?.summary?.expensePercentage ??
+    (budgetLimit > 0
+      ? Number(((totalExpense / budgetLimit) * 100).toFixed(2))
+      : 0);
+
+  // These are optional so the page keeps working until the GET budget
+  // service exposes the active cycle dates.
+  const budgetStartDate =
+    budget?.summary?.startDate ?? budget?.startDate ?? budget?.currentStartDate;
+
+  const budgetEndDate =
+    budget?.summary?.endDate ?? budget?.endDate ?? budget?.currentEndDate;
+
+  const formatBudgetDate = (value) => {
+    if (!value) return null;
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const budgetPeriod =
+    budgetStartDate && budgetEndDate
+      ? `${formatBudgetDate(budgetStartDate)} → ${formatBudgetDate(
+          budgetEndDate,
+        )}`
+      : "Current budget cycle";
 
   return (
     <div className="min-h-screen bg-[#07111f] text-white">
@@ -85,7 +122,7 @@ const Dashboard = () => {
                 }`}
               />
 
-              {isRefreshing ? "Updating LogBook..." : "Refresh LogBook"}
+              {isRefreshing ? "Refreshing Dashboard..." : "Refresh Dashboard"}
             </button>
           </div>
         </header>
@@ -98,31 +135,8 @@ const Dashboard = () => {
             <RefreshCw className="h-4 w-4 animate-spin text-cyan-300" />
 
             <p className="text-sm font-medium text-cyan-200">
-              The LogBook is being updated...
+              The dashboard is being refreshed...
             </p>
-          </div>
-        )}
-
-        {/* =========================================
-            ERROR
-        ========================================= */}
-        {error && (
-          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 rounded-full bg-red-400/10 p-2">
-                <Sparkles className="h-4 w-4 text-red-300" />
-              </div>
-
-              <div>
-                <p className="font-semibold text-red-200">
-                  Something went wrong
-                </p>
-
-                <p className="mt-1 text-sm text-red-300/80">
-                  {error?.message || "We couldn't update your LogBook."}
-                </p>
-              </div>
-            </div>
           </div>
         )}
 
@@ -205,7 +219,7 @@ const Dashboard = () => {
             </div>
 
             <p className="mt-2 text-xs text-slate-500">
-              {expensePercentage}% of your budget spent
+              {expensePercentage}% of the current budget cycle spent
             </p>
           </div>
 
@@ -280,6 +294,36 @@ const Dashboard = () => {
         </section>
 
         {/* =========================================
+            CURRENT BUDGET CYCLE
+        ========================================= */}
+        <section className="mt-6 rounded-3xl border border-amber-400/15 bg-[#101e2f] p-5 shadow-xl sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                Active Budget Cycle
+              </p>
+
+              <h2 className="mt-1 text-xl font-black">{budgetPeriod}</h2>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Only transactions inside this active cycle contribute to the
+                current budget calculation.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">
+                Available
+              </p>
+
+              <p className="mt-1 text-lg font-black text-emerald-300">
+                ₹{remainingBudget.toLocaleString("en-IN")}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================
             VOYAGE / TRANSACTION SECTION
         ========================================= */}
         <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -288,7 +332,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                  Voyage Log
+                  Current Cycle Activity
                 </p>
 
                 <h2 className="mt-1 text-xl font-black">
@@ -301,21 +345,71 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-black/10 px-5 py-10 text-center">
-              <div className="rounded-full bg-amber-400/10 p-4">
-                <Anchor className="h-7 w-7 text-amber-400" />
-              </div>
+            <div className="mt-6 space-y-3">
+              {transactionCount === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-black/10 px-5 py-10 text-center">
+                  <div className="rounded-full bg-amber-400/10 p-4">
+                    <Anchor className="h-7 w-7 text-amber-400" />
+                  </div>
 
-              <h3 className="mt-4 text-lg font-bold">
-                {transactionCount === 0
-                  ? "No voyages recorded yet"
-                  : `${transactionCount} transactions recorded`}
-              </h3>
+                  <h3 className="mt-4 text-lg font-bold">
+                    No transactions recorded yet
+                  </h3>
 
-              <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Your transaction history will appear here as you record your
-                financial voyages.
-              </p>
+                  <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+                    Your recent transactions will appear here.
+                  </p>
+                </div>
+              ) : (
+                transaction.map((item) => {
+                  const isIncome = item.type === "Income";
+
+                  return (
+                    <div
+                      key={item._id}
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-black/10 p-4"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div
+                          className={`shrink-0 rounded-xl p-3 ${
+                            isIncome ? "bg-cyan-400/10" : "bg-rose-400/10"
+                          }`}
+                        >
+                          {isIncome ? (
+                            <ArrowDownToLine className="h-5 w-5 text-cyan-300" />
+                          ) : (
+                            <ArrowUpFromLine className="h-5 w-5 text-rose-300" />
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate font-bold text-white">
+                            {item.category || "Uncategorized"}
+                          </p>
+
+                          <p className="mt-1 text-xs text-slate-500">
+                            {item.type || "Transaction"}{" "}
+                            {item.createdAt
+                              ? `• ${new Date(
+                                  item.createdAt,
+                                ).toLocaleDateString("en-IN")}`
+                              : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p
+                        className={`shrink-0 text-sm font-black sm:text-base ${
+                          isIncome ? "text-cyan-300" : "text-rose-300"
+                        }`}
+                      >
+                        {isIncome ? "+" : "-"}₹
+                        {Number(item.amount || 0).toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 

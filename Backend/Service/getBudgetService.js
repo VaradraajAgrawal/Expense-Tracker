@@ -16,12 +16,7 @@ const dateFunction = (date) => {
 };
 
 const recentTransaction = async (fil) => {
-  if (!fil) {
-    return [];
-  }
-
   const sort = { createdAt: -1 };
-
   const data = await Transaction.find(fil).sort(sort);
 
   return data;
@@ -62,7 +57,7 @@ const getBudgetService = async (user) => {
     ((totalExpense / budget.limit) * 100).toFixed(2),
   );
 
-  const remainingBudget = Math.floor(budget.limit + netValue);
+  const remainingBudget = Math.floor(budget.limit - totalExpense);
 
   return {
     budget: budget.limit,

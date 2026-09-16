@@ -67,7 +67,22 @@ const createUser = middleware(async (req, res, next) => {
     user: newUser._id,
     limit: 0,
     currentDate: 0,
-    history: [],
+    history: [
+      {
+        oldData: {
+          startDate: null,
+          endDate: null,
+          limit: 0,
+        },
+        newData: {
+          startDate: null,
+          endDate: null,
+          limit: 0,
+        },
+        isActive: false,
+        leftOut: {},
+      },
+    ],
   });
 
   await sendToken(201, newUser, res);

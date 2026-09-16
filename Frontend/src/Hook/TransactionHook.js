@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createTransactionService } from "../Services/Transaction/createTransaction";
-import { getTransaction } from "../Services/Dasboard/transaction";
+import { getTransaction } from "../Services/Transaction/transaction";
 import { updateTransactionService } from "../Services/Transaction/updateTransactionService";
 import { deleteTransactionService } from "../Services/Transaction/deleteTransactionService";
 const initialFilters = {
@@ -57,7 +57,6 @@ export const useTransaction = () => {
   const fetchTransaction = useCallback(
     async ({ controller, refreshing = false, query } = {}) => {
       const { signal } = controller;
-
       if (!isMounted.current) {
         return;
       }
@@ -133,7 +132,7 @@ export const useTransaction = () => {
   // Apply Filters
   // =========================
 
-  const applyFilters = useCallback(() => {
+  const applyFilters = useCallback(async () => {
     const newAppliedFilters = {
       ...draftFilters,
       page: 1,

@@ -2,6 +2,7 @@ import { getBudget } from "../Services/Dasboard/budget";
 import { getTransaction } from "../Services/Dasboard/transaction";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getUser } from "../Services/Dasboard/user";
+import { getUpdateBudgetService } from "../Services/Dasboard/updateBudget";
 
 export const useDashboard = () => {
   const [user, setUser] = useState({ name: "", email: "" });
@@ -37,6 +38,8 @@ export const useDashboard = () => {
               setTransaction(transactionData.filtered);
               setUser(userData.user);
             }
+            console.log("BUDGET RESPONSE:", budgetData);
+            console.log("TRANSACTION RESPONSE:", transactionData);
           }
         } catch (err) {
           if (err.message === "ERR_CANCELED") {
@@ -95,5 +98,18 @@ export const useDashboard = () => {
     };
   }, [fetchDashboard]);
 
-  return { budget, transaction, user, error, isRefreshing, initialLoad };
+  const dashboardUpdate = async () => {
+    const date = new Date();
+    const data = await getUpdateBudgetService({ currentDate: 15 });
+  };
+
+  return {
+    budget,
+    transaction,
+    user,
+    error,
+    isRefreshing,
+    initialLoad,
+    dashboardUpdate,
+  };
 };

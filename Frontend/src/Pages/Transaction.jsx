@@ -228,16 +228,6 @@ const Transaction = () => {
 
     try {
       setIsSubmitting(true);
-
-      await updateTransaction({
-        id: editingTransaction._id,
-        data: {
-          amount: Number(form.amount),
-          type: form.type,
-          category: form.category,
-        },
-      });
-
       setEditingTransaction(null);
       setForm(emptyForm);
     } catch (err) {

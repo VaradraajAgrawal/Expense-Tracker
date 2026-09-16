@@ -1,12 +1,9 @@
 const express = require("express");
 const Auth = require("../middleware/UserAuth");
 const router = express.Router();
-const {
-  budgetUpdate,
-  budgetTransactionUpdate,
-} = require("../Controller/BudgetController");
+const { budgetUpdate, getBudget } = require("../Controller/BudgetController");
 
 router.patch("/", Auth, budgetUpdate);
-router.get("/", Auth, budgetTransactionUpdate);
+router.get("/", Auth, getBudget);
 
 module.exports = router;

@@ -1,30 +1,19 @@
 import api from "../../api/Interceptor";
 
-const getTransaction = async ({
-  signal,
-  amountMin,
-  amountMax,
-  category,
-  type,
-  thisMonth,
-  startDate,
-  endDate,
-  sort,
-  page,
-} = {}) => {
+export const getTransaction = async ({ signal, query } = {}) => {
   try {
     const { data } = await api.get("/Transaction", {
       signal,
       params: {
-        min: amountMin,
-        max: amountMax,
-        category,
-        type,
-        thisMonth,
-        startDate,
-        endDate,
-        sort,
-        page,
+        min: query.minAmount,
+        max: query.maxAmount,
+        category: query.category,
+        type: query.type,
+        thisMonth: query.thisMonth,
+        startDate: query.startDate,
+        endDate: query.endDate,
+        sort: query.sort,
+        page: query.page,
       },
     });
     return data;
